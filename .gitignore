@@ -1,2 +1,10 @@
 *.csv
 *bak*.*
+
+# Ignore all files in bin, include, lib, and obj directories
+lib/*
+bin/*
+bin/activate
+*data*/*
+share/*
+.DS_Store

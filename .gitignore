@@ -8,4 +8,6 @@ bin/activate
 *data*/*
 share/*
 .DS_Store
-notebook/data_storage_parsed_20240222.json
+notebook/data_storage_parsed*.*
+parsed_openai_response*.*
+*.zip

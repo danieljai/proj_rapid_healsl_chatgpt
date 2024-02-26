@@ -1,4 +1,5 @@
 *.csv
+*.json
 *bak*.*
 
 # Ignore all files in bin, include, lib, and obj directories

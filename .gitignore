@@ -1,6 +1,7 @@
 *.csv
 *.json
 *bak*.*
+response_report*.txt
 
 # Ignore all files in bin, include, lib, and obj directories
 lib/*

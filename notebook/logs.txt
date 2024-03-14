@@ -1,0 +1,6 @@
+03-13
+
+- Ran GPT4 for 11.5 hours
+- decide to set max tokens to 40 moving forward
+- decide to export "first ICD" and "sorted ICD" moving forward
+- reprocess all files

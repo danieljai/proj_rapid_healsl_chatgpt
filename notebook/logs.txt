@@ -3,4 +3,23 @@
 - Ran GPT4 for 11.5 hours
 - decide to set max tokens to 40 moving forward
 - decide to export "first ICD" and "sorted ICD" moving forward
-- reprocess all files
+- reprocess both gpt3 and gpt4
+
+03-14
+
+- create a new directory just for working exports
+- new files needed
+- found bug in calculating logprobs. added strip to remove \n from in df
+
+all data
+1. compiled into format usable for openAI api
+2. process using api -> export JSON files
+3. extract ICD codes -> export (1) sorted_icd.csv (2) first_icd.csv
+4. split by round
+
+sampling data
+1. 
+
+THOUGHTS:
+- when using max_token, we truncate the last output. There's a risk that the last incomplete yet valid syntax icd10 code produces returns returns the best score
+- i suppose if there are more than 5 ICD, drop the last one.

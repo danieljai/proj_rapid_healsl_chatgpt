@@ -13,3 +13,4 @@ share/*
 notebook/data_storage_parsed*.*
 parsed_openai_response*.*
 *.zip
+notebook/Step02_process_openai_report_*.txt

@@ -1,0 +1,25 @@
+﻿data_name,column_name,description,type,,,,,
+icd10_v1,rowid,Unique row identifier for this dataset,int,,,,,
+icd10_v1,cause1_icd10,First ICD-10 code assigned by the model,text,,,,,
+icd10_v1,cause1_icd10_prob,,,,,,,
+icd10_v1,cause2_icd10,,,,,,,
+icd10_v1,cause2_icd10_prob,,,,,,,
+,cause3_icd10,,,,,,,
+,cause3_icd10_prob,,,,,,,
+,cause4_icd10,,,,,,,
+,cause4_icd10_prob,,,,,,,
+,cause5_icd10,,,,,,,
+,cause5_icd10_prob,,,,,kind,"ICD-10 entity kind. One of chapter, block, or category. Chapters are top level classification entities. Blocks are high level groupings that do not have a code. Categories are entities that have a code.",text
+,output_created,,,,,kind_depth,"ICD-10 depth for kind. For example, a category with kind_depth=2 means it is category whose parent is also a category but grand parent is not.",bigint
+,param_model,,,,,chapter,ICD-10 chapter for the entity.,text
+,param_system_prompt,,,,,code,ICD-10 code for the entity.,text
+,param_user_prompt,,,,,title,ICD-10 title of the entity.,text
+,output_usage_completion_tokens,,,,,,,
+,output_usage_prompt_tokens,,,,,,,
+,output_msg,,,,,,,
+,icd10_count,,,,,,,
+,output_probs,,,,,,,
+,age_group,,,,,,,
+,round,,,,,,,
+,output,,,,,,,
+,cause_list,,,,,,,

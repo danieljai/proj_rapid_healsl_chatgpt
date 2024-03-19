@@ -2,6 +2,7 @@
 *.json
 *bak*.*
 response_report*.txt
+Step02_process_openai_report_*.txt
 
 # Ignore all files in bin, include, lib, and obj directories
 lib/*

@@ -23,3 +23,29 @@ sampling data
 THOUGHTS:
 - when using max_token, we truncate the last output. There's a risk that the last incomplete yet valid syntax icd10 code produces returns returns the best score
 - i suppose if there are more than 5 ICD, drop the last one.
+
+03-15
+- finished running all gpt4 experiments
+
+03-18
+- compiling another set of outputs using first ICD10 code from output
+- determine that first ICD10 code yields better PCCC
+
+03-19
+- dropping sorted ICD10 moving forward, removed cause(x)_probs as it is no longer needed
+- fill in meta and datadict files
+
+Changing file structure, ready for publication
+1. preprocessing 
+2. run API
+3. extract ICD10
+4a. for full - split to round1/2
+4b. for sample - aggregate 1x..10x
+
+merge [1 > 2 > 3]
+full 1 > 2 > 3 > 4a
+sample 1 > 2 > 3 > 4b
+
+Step A = full
+step b = sample
+lower case for the filenames

@@ -63,12 +63,23 @@ USR_PROMPT = """Determine the underlying cause of death and provide the most pro
 # #############################################################################################
 # STEP 3 Parameters
 
-IMPORT_O2_JSON_DATA = "./"
+# IMPORT_O2_JSON_DATA = OUTPUT_FULL_PROCESSED_JSON_FILE
+# IMPORT_O2_JSON_DATA = "./notebook/_working_data_240315/02_(all)_gpt3_0309.json"
+IMPORT_02_JSON_DATA = "./notebook/_working_data_240315/02_(sampled)_gpt3_0308.json"
+export_first_ICD_CSV_file = "./temp/step3_processed_full.csv"
+
+# Data Analysis Settings
+PAIRS = 5           # Generate up to 5 ICDs
+
+# Output Settings
+DROP_EXCESS_COLUMNS = False         # Set True to remove 'other_columns' from output dataframe
+DROP_RAW = False                    # Set True to remove the 'raw' column, the original raw response, from the export file
 
 
 
-def step1():
-    app_logger.info("Beginning Step 1: Preprocessing data")
+
+def step_1_prepare_data():
+    app_logger.info("Beginning Step 1: Data Preparation")
 
     app_logger.info(f"Searching for '{STEP1_EXPORT_FULL_FILE}' and '{STEP1_EXPORT_SAMPLE_FILE}'.")
 
@@ -226,9 +237,11 @@ def step1():
 
     app_logger.info(f"Exporting full to {STEP1_EXPORT_FULL_FILE}")
     final_full_df.to_csv(STEP1_EXPORT_FULL_FILE, index=False)
+
+    app_logger.info("Data Preparation completed")
     pass
 
-def step2():
+def step_2_generate_gpt_responses():
     
     # Function to load CSV dataset and return a DataFrame    
     def load_import_data(filename) -> pd.DataFrame:
@@ -282,10 +295,6 @@ def step2():
         
         app_logger.info(f"Trimming complete. Returning DataFrame shape: {temp_df.shape}")    
         return temp_df
-    
-    # Function to get current time in string YYMMDD_HHMMSS format
-    def get_current_str_time() -> str:
-        return datetime.datetime.now(tz=TIMEZONE).strftime("%y%m%d_%H%M%S")
 
     # Used to convert ChatCompletion object to a dictionary, recursively
     def recursive_dict(obj):
@@ -443,13 +452,13 @@ def step2():
             print(f"{len(skipped_rows)} rows skipped. Check skip file for details.")
             
             # Write skipped rows to a file
-            with open(f"./_temp/step2_skipped_{get_current_str_time()}.txt", "w") as file:
+            with open(f"./_temp/step2_skipped_{get_curr_et_datetime_str()}.txt", "w") as file:
                 file.write(f"The follow rows are skipped because they were already processed.\n")
                 for item in skipped_rows:        
                     file.write(f"{str(item)}\n")        
 
     # Main Program
-    app_logger.info("Beginning Step 2: Generating OpenAI responses")
+    app_logger.info("Beginning Step 2: GPT Responses Generation")
     
     app_logger.info("Checking if export directory exists...")
     create_dir(OUTPUT_FULL_PROCESSED_JSON_FILE)
@@ -495,10 +504,305 @@ def step2():
         output_response_path=OUTPUT_SAMPLE_PROCESSED_JSON_FILE
     )
     
-    
+    app_logger.info("GPT Responses Generation completed")
+
     pass
 
-def step3():
+def step_3_extract_info(response_data_file):
+
+    def load_response_data(filename):
+        if os.path.exists(filename):
+            # print(f"{filename} found. Loading data...")
+            with open(filename, 'r') as file:
+                data = json.load(file)
+                app_logger.info(f"{filename} loaded. {len(data)} records found.")
+            return data
+        else:
+            app_logger.error(f"Step 3 failed.")
+            raise FileNotFoundError(f"Error: {filename} not found.")
+
+    # F(x): Extract ICD probabilities from tokens
+    def extract_icd_probabilities(logprobs, debug=False):
+        """
+        Extracts ICD-10 codes and their associated probabilities from a list of tokens and log probabilities.
+
+        This function iterates over the list of tokens and log probabilities, concatenating tokens together 
+        and checking if they match the pattern of an ICD-10 code. If a match is found, it calculates the mean 
+        linear probability of the ICD-10 code and packages the ICD-10 code, mean linear probability, and 
+        associated tokens and log probabilities into a dictionary. It then appends this dictionary to a list 
+        of parsed ICD-10 codes.
+
+        Args:
+            logprobs (list): A list of lists, where each inner list contains a token and its associated log probability.
+            debug (bool, optional): If set to True, the function prints debug information. Defaults to False.
+
+        Returns:
+            list: A list of dictionaries, where each dictionary contains an ICD-10 code, its mean linear probability, 
+                and a dictionary of associated tokens and log probabilities.
+        """
+        parsed_icds = []
+        tmp_df = pd.DataFrame(logprobs)
+        if debug > 0:
+            app_logger.debug(repr(''.join(tmp_df.iloc[:,0])))
+        tmp_df_limit = len(tmp_df)
+        for pos in range(tmp_df_limit):
+            # Concatenate 2, 4, or 5 tokens to form ICD-10 codes
+            temp_concat_ANN = ''.join(tmp_df.iloc[pos:pos+2, 0]).strip()
+            temp_concat_ANN_NNN = ''.join(tmp_df.iloc[pos:pos+4, 0]).strip()
+            temp_concat_ANN_NNN_A = ''.join(tmp_df.iloc[pos:pos+5, 0]).strip()
+            temp_concat_ANA_NNN = ''.join(tmp_df.iloc[pos:pos+5, 0]).strip()
+            
+            # Reference: https://www.webpt.com/blog/understanding-icd-10-code-structure
+            
+            # Pattern for ICD-10 codes, A = Alphabet, N = Number
+            # 'ANN' (e.g., 'A10')
+            # 'ANN.NNN' (e.g., 'A10.001')
+            # 'ANN.NNNA' (e.g., 'A10.001A') 
+            # Note: last alphabet valid only if there are 6 characters before it
+            pattern_ANN = r"^[A-Z]\d[0-9A-Z]$"
+            pattern_ANN_NNN = r"^[A-Z]\d[0-9A-Z]\.\d{1,3}$"        
+            pattern_ANN_NNN_A = r"^[A-Z]\d[0-9A-Z]\.\d{3}[A-Z]$"        
+            
+            # Check if the concatenated tokens match the ICD-10 code patterns
+            match_ANN = re.match(pattern_ANN, temp_concat_ANN)
+            match_ANN_NNN = re.match(pattern_ANN_NNN, temp_concat_ANN_NNN)
+            match_ANN_NNN_A = re.match(pattern_ANN_NNN_A, temp_concat_ANN_NNN_A)
+            match_ANA_NNN = re.match(pattern_ANN_NNN, temp_concat_ANA_NNN)
+            
+            # [debug] Each line will show which of the 3 patterns matched for the 3 token
+            if debug == 2:
+                app_logger.debug(
+                    str(pos).ljust(4), 
+                    repr(temp_concat_ANN).ljust(10), 
+                    ('yes' if match_ANN else 'no').ljust(15), 
+                    repr(temp_concat_ANN_NNN).ljust(10), 
+                    ('yes' if match_ANN_NNN else 'no').ljust(15), 
+                    repr(temp_concat_ANN_NNN_A).ljust(10), 
+                    ('yes' if match_ANN_NNN_A else 'no').ljust(15),
+                    repr(temp_concat_ANA_NNN).ljust(10), 
+                    ('yes' if match_ANA_NNN else 'no').ljust(5)
+                    )
+            
+            # Check match from longest to shortest
+            # If a match is found, calculate the mean linear probability 
+            # and package the ICD-10 code and associated data
+            if match_ANN_NNN_A:
+                winning_df = pd.DataFrame(logprobs[pos:pos+5])
+                winning_icd = temp_concat_ANN_NNN_A
+            elif match_ANA_NNN:
+                winning_df = pd.DataFrame(logprobs[pos:pos+5])
+                winning_icd = temp_concat_ANA_NNN
+            elif match_ANN_NNN:
+                winning_df = pd.DataFrame(logprobs[pos:pos+4])
+                winning_icd = temp_concat_ANN_NNN            
+            elif match_ANN:
+                winning_df = pd.DataFrame(logprobs[pos:pos+2])
+                winning_icd = temp_concat_ANN            
+            else:
+                continue
+
+            # detect any rows that are just whitespace (e.g. \n), and drop those rows
+            whitespc_index = winning_df[winning_df.loc[:, 0].str.isspace()].index.tolist()
+            winning_df = winning_df.drop(whitespc_index)
+            
+            # [debug] Display the winning ICD-10 code and its associated data
+            if debug == 2:
+                print(f"**** {winning_icd} - VALID ICD ****")
+                app_logger.debug(winning_df)
+            
+            # Convert log probabilities to linear probabilities and calculate the mean
+            winning_mean = np.exp(winning_df.iloc[:, 1]).mean()
+            
+            # Package the ICD-10 code and associated data
+            winning_package = {
+                'icd': winning_icd,
+                'icd_linprob_mean': winning_mean,
+                'logprobs': winning_df.rename(columns={0: 'token', 1:'logprob'}).to_dict(orient='list')
+            }
+
+            # check if this ICD-10 is already in the list
+            if winning_package in parsed_icds:
+                if debug > 0:
+                    app_logger.debug("Duplicate ICD-10 code found. Skipping...")
+                continue
+            
+            # Append the package to the list of parsed ICD-10 codes
+            parsed_icds.append(winning_package)
+        
+        # [debug] Display the parsed ICD-10 codes
+        if debug > 0:
+            app_logger.debug(parsed_icds) 
+        
+        # Check if parsed_icds is empty
+        if not parsed_icds:
+            # If it is, raise an error and show the logprobs in question
+            app_logger.warning(f"ICD-10 code not found in this logprobs: {logprobs}")
+                    
+        # Drop the last element if there are more than 5 ICD10 extracted.
+        if len(parsed_icds) > 5:
+            parsed_icds = parsed_icds[:-1]
+
+        return parsed_icds
+
+    # F(x): Convert list of ICD10 into individual columns
+    def output_icds_to_cols(value, pairs=PAIRS, sort_probs=False):
+        """
+        Converts a list of ICD-10 codes and their associated probabilities into a one-dimensional pandas Series.
+
+        This function takes a list of tuples, where each tuple contains an ICD-10 code and its associated 
+        probability. It converts this list into a DataFrame, sorts the DataFrame by descending probability, 
+        drops the 'logprobs' column, reshapes the DataFrame into a one-dimensional Series, and pads the Series 
+        to fill a specified number of columns.
+
+        Args:
+            value (list): A list of tuples, where each tuple contains an ICD-10 code and its associated probability.
+            pairs (int, optional): The number of columns to pad the Series to. Defaults to PAIRS.
+
+        Returns:
+            pandas.Series: A one-dimensional Series containing the ICD-10 codes and their associated probabilities.
+        """
+        if value == []:
+            return pd.Series([np.nan] * pairs * 2).astype(object)
+
+        tmp = pd.DataFrame(value) # convert list of tuples to dataframe
+        
+        if sort_probs:
+            tmp = tmp.sort_values(by="icd_linprob_mean", ascending=False) # sort by descending probability
+            
+        tmp = tmp.drop(columns=['logprobs'])
+        tmp = tmp.stack().reset_index(drop=True) # convert to 1 row
+        tmp = tmp.reindex(range(pairs*2), axis=1) # pad to fill PAIRS*2 columns
+        
+
+        return tmp
+
+    # F(x): Get export filenames based on input filename
+    def generate_export_filename(file_path, type="first") -> tuple[str, str]:
+        '''
+        Takes a file path as input and returns a tuple containing the names of the parsed JSON and CSV files.
+
+        Parameters:
+            file_path (str): The full path of the input file.
+
+        Returns:
+            tuple[str(json), str(csv)]: A tuple containing the names of the parsed JSON and CSV files.
+        '''
+        directory = os.path.dirname(file_path)
+        file = os.path.basename(file_path)
+        
+        temp = file.split(".json")[0]
+        temp = temp[2:]
+        
+        if type == "first":
+            return f"{directory}/03{temp}_parsed_first_ICD.csv"
+        
+        return f"{directory}/03{temp}_parsed_sorted_ICD.csv"
+        
+    # ##############################################################
+    # Main Program
+
+    app_logger.info("Beginning Step 3: Information Extraction")
+
+        
+    data_storage = load_response_data(response_data_file)
+    df = pd.DataFrame(data_storage).T
+
+    global export_first_ICD_CSV_file
+    if export_first_ICD_CSV_file is None:
+        export_first_ICD_CSV_file = generate_export_filename(response_data_file, type="first")
+        app_logger.info(f"Exporting filename undefined. Exporting to default filename {export_first_ICD_CSV_file}.")
+
+    # Get unrecognized colnames
+    required_colnames = ['uid', 'rowid', 'param_model', 'param_temperature',
+                        'param_logprobs', 'param_system_prompt', 'param_user_prompt',
+                        'timestamp', 'output']
+
+    # Get columns names that are not required
+    extra_colnames = [colname for colname in df.columns if colname not in required_colnames]
+
+    # Extract 4 new columns from 'output'
+    app_logger.info("Extracting columns from 'output'...")
+    df = df.assign(
+        output_msg = df.output.apply(lambda x: x['choices'][0]['message']['content']),
+        output_logprobs = df.output.apply(lambda x: [(token['token'], float(token['logprob'])) for token in x['choices'][0]['logprobs']['content']]),
+        output_usage_completion_tokens = df.output.apply(lambda x: x['usage']['completion_tokens']),
+        output_usage_prompt_tokens = df.output.apply(lambda x: x['usage']['prompt_tokens'])
+        
+    )
+
+    # Extract ICD-10 codes and their associated probabilities to a new column
+    app_logger.info("Extracting ICD-10 codes and probabilities...")
+    df = df.assign(output_probs=df['output_logprobs'].apply(extract_icd_probabilities))
+
+    # Count the number of ICD-10 codes in each response
+    df['icd10_count'] = df['output_probs'].apply(len)
+
+    # Generate column names for the exploded ICDs in cause{n}_icd10 and cause{n}_icd10_prob format
+    icd_column_names_mapping = {i: f"cause{i // 2 + 1}_icd10" for i in range(PAIRS)}
+
+    # cause1...5 are filled in the order they appear in the logprobs
+    # parsed_first_icd10_df = df.merge(df.output_probs.apply(lambda x: output_icds_to_cols(x, sort_probs=False)).rename(columns=icd_column_names_mapping), left_index=True, right_index=True)
+    # cause1...5 are filled in the order they appear in the logprobs
+
+    app_logger.info("Parsing ICD-10 codes to columns...")
+    parsed_first_icd10_df = df.output_probs.apply(
+        lambda x: output_icds_to_cols(x, sort_probs=False)
+    ).rename(columns=icd_column_names_mapping)
+
+    parsed_first_icd10_df = df.merge(
+        parsed_first_icd10_df, 
+        left_index=True, 
+        right_index=True
+    )
+
+    # Define the mapping variable
+    app_logger.info("Renaming columns...")
+    column_mapping = {
+        'model': 'output_model',
+        'system_prompt': 'output_system_prompt',
+        'user_prompt': 'output_user_prompt',
+        'user_prompt': 'output_user_prompt',
+        'timestamp': 'output_created',
+    }
+
+    # Rename the columns using the mapping
+    parsed_first_icd10_df = parsed_first_icd10_df.rename(columns=column_mapping)
+
+    app_logger.info("Organizing columns...")
+    export_columns = []
+    export_columns += ['rowid']
+    export_columns += list(icd_column_names_mapping.values())
+    export_columns += [
+                        'output_created',
+                        'param_model',
+                        'param_system_prompt' , 
+                        'param_user_prompt', 
+                        'output_usage_completion_tokens', 
+                        'output_usage_prompt_tokens', 
+                        'output_msg',
+                        'icd10_count',
+                        'output_probs',
+                    ]
+
+    if not DROP_EXCESS_COLUMNS:
+        export_columns += extra_colnames
+        
+    if not DROP_RAW:
+        export_columns += ['output']
+
+
+    # Show only relevant columns in the final dataframe
+    export_parsed_first_icd10_df = parsed_first_icd10_df[export_columns]
+
+    app_logger.info(f"Finished parsing ICD-10 codes. Final dataframe shape: {export_parsed_first_icd10_df.shape}")
+    app_logger.info(f"Exporting to: {export_first_ICD_CSV_file}")
+
+    create_dir(export_first_ICD_CSV_file)
+
+    export_parsed_first_icd10_df.to_csv(export_first_ICD_CSV_file, index=False)
+
+    app_logger.info("Information Extraction completed")
+
     pass
 
 def logging_process():
@@ -547,14 +851,18 @@ def create_dir(file_path):
         app_logger.info(f"Directory '{dir_path}' does not exist. Creating it...")
         os.makedirs(dir_path)
 
+# Function to get current time in string YYMMDD_HHMMSS format
+    def get_curr_et_datetime_str() -> str:
+        return datetime.datetime.now(tz=TIMEZONE).strftime("%y%m%d_%H%M%S")
+    
 def main():
     # load logging preference
     # logging.getLogger().setLevel(logging.WARNING)
     logging_process()
     
-    step1()
-    step2()
-    step3()
+    step_1_prepare_data()
+    step_2_generate_gpt_responses()
+    step_3_extract_info(response_data_file=IMPORT_02_JSON_DATA)
 
 if __name__ == "__main__":
     main()

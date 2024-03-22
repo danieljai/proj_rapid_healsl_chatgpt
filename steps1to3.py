@@ -61,11 +61,22 @@ If there are multiple ICD-10 codes, show one code per line."""
 USR_PROMPT = """Determine the underlying cause of death and provide the most probable ICD-10 code for a verbal autopsy narrative of a AGE_VALUE_DEATH AGE_UNIT_DEATH old SEX_COD death in Sierra Leone: {open_narrative}"""
 
 # #############################################################################################
+# STEP 3 Parameters
+
+IMPORT_O2_JSON_DATA = "./"
 
 
 
 def step1():
     app_logger.info("Beginning Step 1: Preprocessing data")
+
+    app_logger.info(f"Searching for '{STEP1_EXPORT_FULL_FILE}' and '{STEP1_EXPORT_SAMPLE_FILE}'.")
+
+    if check_file_exists(STEP1_EXPORT_FULL_FILE) and check_file_exists(STEP1_EXPORT_SAMPLE_FILE):
+        app_logger.info("Export files found. Skipping Step 1.")
+        return
+    else:
+        app_logger.info("All or some export files missing. Proceeding with Step 1.")
 
     if not os.path.isdir(STEP1_IMPORT_REL_DIR):
         raise ValueError("Invalid path_prefix: Directory does not exist")
@@ -541,13 +552,7 @@ def main():
     # logging.getLogger().setLevel(logging.WARNING)
     logging_process()
     
-    app_logger.info(f"Searching for '{STEP1_EXPORT_FULL_FILE}' and '{STEP1_EXPORT_SAMPLE_FILE}'.")    
-    if not check_file_exists(STEP1_EXPORT_FULL_FILE) or not check_file_exists(STEP1_EXPORT_SAMPLE_FILE):
-        app_logger.info("All or some export files missing. Proceeding with Step 1.")
-        step1()
-    else:
-        app_logger.info("Export files found. Skipping Step 1.")
-
+    step1()
     step2()
     step3()
 

@@ -1,0 +1,526 @@
+ > & C:/ProgramData/Anaconda3/python.exe c:/proj_rapid_healsl_chatgpt/standalone_py/steps1to3.py
+15:38:39:538[main]: Running step 1 on preparing data...
+15:38:39:539[step_1_prepare_data]: Begin Function
+15:38:39:539[step_1_prepare_data]: Checking if export files exist...
+15:38:39:539[check_file_exists]: Checking if 'c:\proj_rapid_healsl_chatgpt\standalone_py\temp\s1_output_full.csv' exists... no
+15:38:39:539[check_file_exists]: Checking if 'c:\proj_rapid_healsl_chatgpt\standalone_py\temp\s1_output_sample.csv' exists... no
+15:38:39:539[step_1_prepare_data]: Full prepared data exists: False
+15:38:39:539[step_1_prepare_data]: Sample prepared data exists: False
+15:38:39:540[step_1_prepare_data]: Export dir not found. Creating directory: c:\proj_rapid_healsl_chatgpt\standalone_py\temp
+15:38:39:540[step_1_prepare_data]: Continuing with Step 1: Data Preparation
+15:38:39:540[step_1_prepare_data]: Import directory exists: True
+15:38:39:761[step_1_prepare_data]: Reading: rd1, adult - 4987 records
+15:38:39:876[step_1_prepare_data]: Reading: rd1, child - 2998 records
+15:38:39:911[step_1_prepare_data]: Reading: rd1, neo - 585 records
+15:38:40:006[step_1_prepare_data]: Reading: rd2, adult - 2025 records
+15:38:40:058[step_1_prepare_data]: Reading: rd2, child - 1059 records
+15:38:40:080[step_1_prepare_data]: Reading: rd2, neo - 233 records
+15:38:40:081[step_1_prepare_data]: Merging dataframes complete. Total rows: 11887       
+15:38:40:081[get_samples]: Extracting samples from dataframe. n=100, repetition=10      
+15:38:40:085[get_samples]: adult_rd1: 42 records
+15:38:40:086[get_samples]: child_rd1: 25 records
+15:38:40:087[get_samples]: adult_rd2: 17 records
+15:38:40:088[get_samples]: child_rd2: 9 records
+15:38:40:089[get_samples]: neo_rd1: 5 records
+15:38:40:090[get_samples]: neo_rd2: 2 records
+15:38:40:090[get_samples]: Total samples: 100. No need to remove any samples.
+15:38:40:090[get_samples]: Sampled 100 rows.
+15:38:40:091[get_samples]: Compile dataframe according to sampled rowids
+15:38:40:097[get_samples]: Create uid for sampling repetition
+15:38:40:097[get_samples]: Drop 'group' column
+15:38:40:098[get_samples]: Reorder dataframe columns
+15:38:40:098[get_samples]: Fill empty string in NaN values
+15:38:40:098[get_samples]: Sample Dataframe complete. Returning dataframe.
+15:38:40:098[get_samples]: Final sample dataframe shape: (1000, 8)
+15:38:40:099[get_full_df]: Creating full data dataframe.
+15:38:40:099[get_full_df]: Duplicate dataframe
+15:38:40:100[get_full_df]: Create uid for full dataframe
+15:38:40:100[get_full_df]: Reorder dataframe columns
+15:38:40:101[get_full_df]: Fill empty string in NaN values
+15:38:40:102[get_full_df]: Full Dataframe complete. Returning dataframe.
+15:38:40:102[get_full_df]: Final full dataframe shape: (11887, 8)
+15:38:40:102[step_1_prepare_data]: Exporting full data, shape (11887, 8) to c:\proj_rapid_healsl_chatgpt\standalone_py\temp\s1_output_full.csv
+15:38:40:378[step_1_prepare_data]: Exporting sample data, shape (1000, 8) to c:\proj_rapid_healsl_chatgpt\standalone_py\temp\s1_output_sample.csv
+15:38:40:402[step_1_prepare_data]: Data Preparation completed
+15:38:40:406[main]: Running step 2 on generating GPT responses...
+15:38:40:406[step_2_generate_gpt_responses]: Begin Function
+15:38:40:406[step_2_generate_gpt_responses]: Checking if export directory exists...     
+15:38:40:406[step_2_generate_gpt_responses]: Initializing OpenAI client.
+15:38:40:415[step_2_generate_gpt_responses]: Begin FULL dataset Responses Generation    
+15:38:40:415[load_va_data]: Loading dataset from c:\proj_rapid_healsl_chatgpt\standalone_py\temp\s1_output_full.csv
+15:38:40:562[load_va_data]: Dataset loaded. Returning DataFrame. Shape: (11887, 8)
+15:38:40:563[check_dataframe_columns]: Required columns: ['uid', 'rowid', 'age_value_death', 'age_unit_death', 'open_narrative', 'sex_cod']
+15:38:40:563[check_dataframe_columns]: 2 extra column(s) found
+15:38:40:563[get_api_response]: Processing 11887 VA records using model gpt-3.5-turbo-0125
+15:38:40:563[load_export_data]: Attempting to locate previously exported data...        
+15:38:40:563[load_export_data]: c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_full.json not found. Allocating new storage space...
+
+****************** BEGIN MODEL RESPONSE GENERATION *******************
+
+Model: gpt-3.5-turbo-0125
+Temperature: 0
+Logprobs: True
+Data Shape: (11887, 8)
+Generating responses using VA records...
+
+Saving index: 11886    Processing: 24001069     Rows skipped: 0
+Data saved successfully.
+
+************************ GENERATION COMPLETED ************************
+
+18:11:02:359[step_2_generate_gpt_responses]: FULL dataset Responses Generation completed
+18:11:02:359[step_2_generate_gpt_responses]: Begin SAMPLE dataset Responses Generation  
+18:11:02:359[load_va_data]: Loading dataset from c:\proj_rapid_healsl_chatgpt\standalone_py\temp\s1_output_sample.csv
+18:11:02:378[load_va_data]: Dataset loaded. Returning DataFrame. Shape: (1000, 8)
+18:11:02:379[check_dataframe_columns]: Required columns: ['uid', 'rowid', 'age_value_death', 'age_unit_death', 'open_narrative', 'sex_cod']
+18:11:02:379[check_dataframe_columns]: 2 extra column(s) found
+18:11:02:379[get_api_response]: Processing 1000 VA records using model gpt-3.5-turbo-0125
+18:11:02:379[load_export_data]: Attempting to locate previously exported data...        
+18:11:02:379[load_export_data]: c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_sample.json not found. Allocating new storage space...
+
+****************** BEGIN MODEL RESPONSE GENERATION *******************
+
+Model: gpt-3.5-turbo-0125
+Temperature: 0
+Logprobs: True
+Data Shape: (1000, 8)
+Generating responses using VA records...
+
+Saving index: 999      Processing: 24000133_9   Rows skipped: 0
+Data saved successfully.
+
+************************ GENERATION COMPLETED ************************
+
+18:18:50:857[step_2_generate_gpt_responses]: SAMPLE dataset Responses Generation completed
+18:18:50:857[step_2_generate_gpt_responses]: All GPT Responses Generation completed     
+18:18:50:861[main]: Running step 3 on full data...
+18:18:50:861[step_3_extract_info]: Beginning Step 3: Information Extraction
+18:18:50:861[step_3_extract_info]: Loading response data from c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_full.json.
+18:18:51:131[load_response_data]: c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_full.json loaded. 11887 records found.
+18:18:51:306[step_3_extract_info]: Extracting columns from 'output'...
+18:18:51:401[step_3_extract_info]: Extracting ICD-10 codes and probabilities...
+18:19:07:384[step_3_extract_info]: Parsing ICD-10 codes to columns...
+18:19:15:269[step_3_extract_info]: Renaming columns...
+18:19:15:283[step_3_extract_info]: Organizing columns...
+18:19:15:287[step_3_extract_info]: Parsing finished. DataFrame shape: (11887, 19)       
+18:19:15:287[step_3_extract_info]: Export path: c:\proj_rapid_healsl_chatgpt\standalone_py\output/s3_output_gpt3_full.csv
+18:19:15:287[create_dir]: Directory 'c:\proj_rapid_healsl_chatgpt\standalone_py\output' does not exist. Creating it...
+18:19:16:018[step_3_extract_info]: Information Extraction completed
+18:19:16:047[main]: Running step 3 on sample data...
+18:19:16:047[step_3_extract_info]: Beginning Step 3: Information Extraction
+18:19:16:047[step_3_extract_info]: Loading response data from c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_sample.json.
+18:19:16:068[load_response_data]: c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_sample.json loaded. 1000 records found.
+18:19:16:082[step_3_extract_info]: Extracting columns from 'output'...
+18:19:16:086[step_3_extract_info]: Extracting ICD-10 codes and probabilities...
+18:19:17:455[step_3_extract_info]: Parsing ICD-10 codes to columns...
+18:19:18:106[step_3_extract_info]: Renaming columns...
+18:19:18:107[step_3_extract_info]: Organizing columns...
+18:19:18:107[step_3_extract_info]: Parsing finished. DataFrame shape: (1000, 19)        
+18:19:18:107[step_3_extract_info]: Export path: c:\proj_rapid_healsl_chatgpt\standalone_py\output/s3_output_gpt3_sample.csv
+18:19:18:166[step_3_extract_info]: Information Extraction completed
+PS C:\proj_rapid_healsl_chatgpt> & C:/ProgramData/Anaconda3/python.exe c:/proj_rapid_healsl_chatgpt/standalone_py/tools_split_by_round.py
+INFO:root:[TOOLS] Begin splitting data by round
+INFO:root:Input file: c:\proj_rapid_healsl_chatgpt\standalone_py\output\s3_output_gpt3_full.csv
+INFO:root:Directory: output
+INFO:root:Model: gpt3
+INFO:root:Version: v2b
+INFO:root:Split by round: ['rd1' 'rd2']
+INFO:root:Preparing round: rd1 Shape: (8570, 19)
+INFO:root:Export to: c:\proj_rapid_healsl_chatgpt\standalone_py\output\healsl_rd1_rapid_gpt3_v2b.csv
+INFO:root:Preparing round: rd2 Shape: (3317, 19)
+INFO:root:Export to: c:\proj_rapid_healsl_chatgpt\standalone_py\output\healsl_rd2_rapid_gpt3_v2b.csv
+INFO:root:[TOOLS] Data splitting complete
+PS C:\proj_rapid_healsl_chatgpt> & C:/ProgramData/Anaconda3/python.exe c:/proj_rapid_healsl_chatgpt/standalone_py/steps1to3.py
+11:44:24:842[main]: Running step 3 on full data...
+11:44:24:842[step_3_extract_info]: Beginning Step 3: Information Extraction
+11:44:24:842[step_3_extract_info]: Loading response data from c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_full.json.
+11:44:25:081[load_response_data]: c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_full.json loaded. 11887 records found.
+11:44:25:310[step_3_extract_info]: Extracting columns from 'output'...
+11:44:25:340[step_3_extract_info]: Extracting ICD-10 codes and probabilities...
+11:44:40:854[step_3_extract_info]: Parsing ICD-10 codes to columns...
+11:44:48:619[step_3_extract_info]: Renaming columns...
+11:44:48:623[step_3_extract_info]: Organizing columns...
+11:44:48:625[step_3_extract_info]: Parsing finished. DataFrame shape: (11887, 21)       
+11:44:48:625[step_3_extract_info]: Export path: c:\proj_rapid_healsl_chatgpt\standalone_py\output/s3_output_gpt3_full.csv
+11:44:49:268[step_3_extract_info]: Information Extraction completed
+11:44:49:298[main]: Running step 3 on sample data...
+11:44:49:298[step_3_extract_info]: Beginning Step 3: Information Extraction
+11:44:49:298[step_3_extract_info]: Loading response data from c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_sample.json.
+11:44:49:322[load_response_data]: c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_sample.json loaded. 1000 records found.
+11:44:49:343[step_3_extract_info]: Extracting columns from 'output'...
+11:44:49:349[step_3_extract_info]: Extracting ICD-10 codes and probabilities...
+11:44:50:670[step_3_extract_info]: Parsing ICD-10 codes to columns...
+11:44:51:316[step_3_extract_info]: Renaming columns...
+11:44:51:316[step_3_extract_info]: Organizing columns...
+11:44:51:316[step_3_extract_info]: Parsing finished. DataFrame shape: (1000, 21)        
+11:44:51:316[step_3_extract_info]: Export path: c:\proj_rapid_healsl_chatgpt\standalone_py\output/s3_output_gpt3_sample.csv
+11:44:51:374[step_3_extract_info]: Information Extraction completed
+PS C:\proj_rapid_healsl_chatgpt> & C:/ProgramData/Anaconda3/python.exe c:/proj_rapid_healsl_chatgpt/standalone_py/tools_split_by_round.py
+INFO:root:[TOOLS] Begin splitting data by round
+INFO:root:Input file: c:\proj_rapid_healsl_chatgpt\standalone_py\output\s3_output_gpt3_full.csv
+INFO:root:Directory: output
+INFO:root:Model: gpt3
+INFO:root:Version: v2b
+INFO:root:Split by round: ['rd1' 'rd2']
+INFO:root:Preparing round: rd1 Shape: (8570, 21)
+INFO:root:Export to: c:\proj_rapid_healsl_chatgpt\standalone_py\output\healsl_rd1_rapid_gpt3_v2b.csv
+INFO:root:Preparing round: rd2 Shape: (3317, 21)
+INFO:root:Export to: c:\proj_rapid_healsl_chatgpt\standalone_py\output\healsl_rd2_rapid_gpt3_v2b.csv
+INFO:root:[TOOLS] Data splitting complete
+PS C:\proj_rapid_healsl_chatgpt> & C:/ProgramData/Anaconda3/python.exe c:/proj_rapid_healsl_chatgpt/standalone_py/tools_sample_analysis.py
+11:45:19:321[same_cause_icd10]: [TOOLS] Analysis by Aggregating ICD10 codes
+11:45:19:321[same_cause_icd10]: Reading input data...
+11:45:19:351[same_cause_icd10]: Same cause ICD10 analysis
+11:45:19:351[same_cause_icd10]: Removing decimals from ICD10 codes...
+11:45:19:355[same_cause_icd10]: Combining similar rowids and counting ICD10 code frequency...
+Analysis of Repeated ICD10 Codes per record
+-------------------------------------------------------
+                      binarized  non-binarized
+same_cause1_icd10_1x         24             18
+same_cause1_icd10_2x         13             13
+same_cause1_icd10_3x          7              7
+same_cause1_icd10_4x          3              3
+same_cause1_icd10_5x          2              2
+same_cause1_icd10_6x          2              2
+same_cause1_icd10_7x          6              6
+same_cause1_icd10_8x         14             14
+same_cause1_icd10_9x          9              9
+same_cause1_icd10_10x        66             66
+
+Binarized reduces repeated times-count of the same row to 1.
+E.g. A row with (3) 2x plus (1) 4x will be counted as (1) 2x plus (1) 4x
+
+Majority repeated (6x and above) similarity (0.0-1.0): 0.97
+11:45:19:387[same_cause_cghr10]: [TOOLS] Analysis by Aggregating CGHR10 titles
+11:45:19:387[same_cause_cghr10]: Reading ICD10 to CGHR10 mapping file...
+11:45:19:398[same_cause_cghr10]: Reading input data...
+11:45:19:424[same_cause_cghr10]: Removing decimals from ICD10 codes...
+11:45:19:427[same_cause_cghr10]: Building CGHR10 mapping helper dictionary...
+11:45:19:473[same_cause_cghr10]: Some ICD10 codes could not be mapped to CGHR. For those records, the CGHR10 code is set to 'NA'.
+11:45:19:474[same_cause_cghr10]: Number of NA in cause1_cghr10: 1
+Binarized and non-binarized sum (binarized reduces repeated counts of a rowid record to 1)
+-------------------------------------------------------
+                       binarized  non-binarized
+same_cause1_cghr10_1x          9              9
+same_cause1_cghr10_2x          7              7
+same_cause1_cghr10_3x          3              3
+same_cause1_cghr10_4x          1              1
+same_cause1_cghr10_5x          2              1
+same_cause1_cghr10_6x          2              2
+same_cause1_cghr10_7x          2              2
+same_cause1_cghr10_8x          7              7
+same_cause1_cghr10_9x          8              8
+same_cause1_cghr10_10x        80             80
+
+Binarized reduces repeated times-count of the same row to 1.
+E.g. A row with (3) 2x plus (1) 4x will be counted as (1) 2x plus (1) 4x
+
+Majority repeated CGHR10 similarity (6x and above) similarity (0.0-1.0): 0.99
+11:45:19:501[main]: Combining ICD10 and CGHR10 analysis into one DataFrame...
+11:45:19:503[main]: Exporting similarities data to: c:\proj_rapid_healsl_chatgpt\standalone_py\output\s3_output_gpt3_sample_aggregated.csv
+11:45:19:505[main]: [TOOLS] Analysis complete
+PS C:\proj_rapid_healsl_chatgpt> & C:/ProgramData/Anaconda3/python.exe c:/proj_rapid_healsl_chatgpt/standalone_py/steps1to3.py
+11:50:20:070[main]: Running step 1 on preparing data...
+11:50:20:070[step_1_prepare_data]: Begin Function
+11:50:20:070[step_1_prepare_data]: Checking if export files exist...
+11:50:20:070[check_file_exists]: Checking if 'c:\proj_rapid_healsl_chatgpt\standalone_py\temp\s1_output_full.csv' exists... yes
+11:50:20:071[check_file_exists]: Checking if 'c:\proj_rapid_healsl_chatgpt\standalone_py\temp\s1_output_sample.csv' exists... yes
+11:50:20:071[step_1_prepare_data]: Full prepared data exists: True
+11:50:20:071[step_1_prepare_data]: Sample prepared data exists: True
+11:50:20:071[step_1_prepare_data]: Export files found. Skipping Step 1.
+11:50:20:071[main]: Running step 2 on generating GPT responses...
+11:50:20:071[step_2_generate_gpt_responses]: Begin Function
+11:50:20:071[step_2_generate_gpt_responses]: Checking if export directory exists...     
+11:50:20:071[step_2_generate_gpt_responses]: Initializing OpenAI client.
+11:50:20:085[step_2_generate_gpt_responses]: Begin FULL dataset Responses Generation    
+11:50:20:085[load_va_data]: Loading dataset from c:\proj_rapid_healsl_chatgpt\standalone_py\temp\s1_output_full.csv
+11:50:20:235[load_va_data]: Dataset loaded. Returning DataFrame. Shape: (11887, 8)
+11:50:20:236[check_dataframe_columns]: Required columns: ['uid', 'rowid', 'age_value_death', 'age_unit_death', 'open_narrative', 'sex_cod']
+11:50:20:236[check_dataframe_columns]: 2 extra column(s) found
+11:50:20:236[get_api_response]: Processing 11887 VA records using model gpt-3.5-turbo-0125
+11:50:20:236[load_export_data]: Attempting to locate previously exported data...        
+11:50:20:236[load_export_data]: c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_full.json found.
+11:50:20:462[load_export_data]: 11887 records loaded.
+
+****************** BEGIN MODEL RESPONSE GENERATION *******************
+
+Model: gpt-3.5-turbo-0125
+Temperature: 0
+Logprobs: True
+Data Shape: (11887, 8)
+Generating responses using VA records...
+
+Saving index: 11886    Processing: 24001069     Rows skipped: 11887
+Data saved successfully.
+
+************************ GENERATION COMPLETED ************************
+
+11887 rows skipped. Check skip file for details.
+11:50:22:110[step_2_generate_gpt_responses]: FULL dataset Responses Generation completed
+11:50:22:110[step_2_generate_gpt_responses]: Begin SAMPLE dataset Responses Generation  
+11:50:22:110[load_va_data]: Loading dataset from c:\proj_rapid_healsl_chatgpt\standalone_py\temp\s1_output_sample.csv
+11:50:22:130[load_va_data]: Dataset loaded. Returning DataFrame. Shape: (1000, 8)
+11:50:22:131[check_dataframe_columns]: Required columns: ['uid', 'rowid', 'age_value_death', 'age_unit_death', 'open_narrative', 'sex_cod']
+11:50:22:131[check_dataframe_columns]: 2 extra column(s) found
+11:50:22:131[get_api_response]: Processing 1000 VA records using model gpt-3.5-turbo-0125
+11:50:22:131[load_export_data]: Attempting to locate previously exported data...        
+11:50:22:131[load_export_data]: c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_sample.json found.
+11:50:22:145[load_export_data]: 1000 records loaded.
+
+****************** BEGIN MODEL RESPONSE GENERATION *******************
+
+Model: gpt-3.5-turbo-0125
+Temperature: 0
+Logprobs: True
+Data Shape: (1000, 8)
+Generating responses using VA records...
+
+Saving index: 999      Processing: 24000133_9   Rows skipped: 1000
+Data saved successfully.
+
+************************ GENERATION COMPLETED ************************
+
+1000 rows skipped. Check skip file for details.
+11:50:22:287[step_2_generate_gpt_responses]: SAMPLE dataset Responses Generation completed
+11:50:22:288[step_2_generate_gpt_responses]: All GPT Responses Generation completed     
+11:50:22:291[main]: Running step 3 on full data...
+11:50:22:291[step_3_extract_info]: Beginning Step 3: Information Extraction
+11:50:22:291[step_3_extract_info]: Loading response data from c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_full.json.
+11:50:22:572[load_response_data]: c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_full.json loaded. 11887 records found.
+11:50:22:748[step_3_extract_info]: Extracting columns from 'output'...
+11:50:22:777[step_3_extract_info]: Extracting ICD-10 codes and probabilities...
+11:50:38:570[step_3_extract_info]: Parsing ICD-10 codes to columns...
+11:50:46:362[step_3_extract_info]: Renaming columns...
+11:50:46:366[step_3_extract_info]: Organizing columns...
+11:50:46:368[step_3_extract_info]: Parsing finished. DataFrame shape: (11887, 18)       
+11:50:46:368[step_3_extract_info]: Export path: c:\proj_rapid_healsl_chatgpt\standalone_py\output/s3_output_gpt3_full.csv
+11:50:47:016[step_3_extract_info]: Information Extraction completed
+11:50:47:043[main]: Running step 3 on sample data...
+11:50:47:043[step_3_extract_info]: Beginning Step 3: Information Extraction
+11:50:47:043[step_3_extract_info]: Loading response data from c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_sample.json.
+11:50:47:068[load_response_data]: c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_sample.json loaded. 1000 records found.
+11:50:47:082[step_3_extract_info]: Extracting columns from 'output'...
+11:50:47:086[step_3_extract_info]: Extracting ICD-10 codes and probabilities...
+11:50:48:400[step_3_extract_info]: Parsing ICD-10 codes to columns...
+11:50:49:035[step_3_extract_info]: Renaming columns...
+11:50:49:036[step_3_extract_info]: Organizing columns...
+11:50:49:036[step_3_extract_info]: Parsing finished. DataFrame shape: (1000, 18)        
+11:50:49:036[step_3_extract_info]: Export path: c:\proj_rapid_healsl_chatgpt\standalone_py\output/s3_output_gpt3_sample.csv
+11:50:49:096[step_3_extract_info]: Information Extraction completed
+PS C:\proj_rapid_healsl_chatgpt> & C:/ProgramData/Anaconda3/python.exe c:/proj_rapid_healsl_chatgpt/standalone_py/tools_split_by_round.py
+INFO:root:[TOOLS] Begin splitting data by round
+INFO:root:Input file: c:\proj_rapid_healsl_chatgpt\standalone_py\output\s3_output_gpt3_full.csv
+INFO:root:Directory: output
+INFO:root:Model: gpt3
+INFO:root:Version: v2b
+INFO:root:Split by round: ['rd1' 'rd2']
+INFO:root:Preparing round: rd1 Shape: (8570, 18)
+INFO:root:Export to: c:\proj_rapid_healsl_chatgpt\standalone_py\output\healsl_rd1_rapid_gpt3_v2b.csv
+INFO:root:Preparing round: rd2 Shape: (3317, 18)
+INFO:root:Export to: c:\proj_rapid_healsl_chatgpt\standalone_py\output\healsl_rd2_rapid_gpt3_v2b.csv
+INFO:root:[TOOLS] Data splitting complete
+PS C:\proj_rapid_healsl_chatgpt> & C:/ProgramData/Anaconda3/python.exe c:/proj_rapid_healsl_chatgpt/standalone_py/tools_sample_analysis.py
+11:50:58:750[same_cause_icd10]: [TOOLS] Analysis by Aggregating ICD10 codes
+11:50:58:750[same_cause_icd10]: Reading input data...
+11:50:58:781[same_cause_icd10]: Same cause ICD10 analysis
+11:50:58:781[same_cause_icd10]: Removing decimals from ICD10 codes...
+11:50:58:785[same_cause_icd10]: Combining similar rowids and counting ICD10 code frequency...
+Analysis of Repeated ICD10 Codes per record
+-------------------------------------------------------
+                      binarized  non-binarized
+same_cause1_icd10_1x         24             18
+same_cause1_icd10_2x         13             13
+same_cause1_icd10_3x          7              7
+same_cause1_icd10_4x          3              3
+same_cause1_icd10_5x          2              2
+same_cause1_icd10_6x          2              2
+same_cause1_icd10_7x          6              6
+same_cause1_icd10_8x         14             14
+same_cause1_icd10_9x          9              9
+same_cause1_icd10_10x        66             66
+
+Binarized reduces repeated times-count of the same row to 1.
+E.g. A row with (3) 2x plus (1) 4x will be counted as (1) 2x plus (1) 4x
+
+Majority repeated (6x and above) similarity (0.0-1.0): 0.97
+11:50:58:816[same_cause_cghr10]: [TOOLS] Analysis by Aggregating CGHR10 titles
+11:50:58:816[same_cause_cghr10]: Reading ICD10 to CGHR10 mapping file...
+11:50:58:821[same_cause_cghr10]: Reading input data...
+11:50:58:847[same_cause_cghr10]: Removing decimals from ICD10 codes...
+11:50:58:851[same_cause_cghr10]: Building CGHR10 mapping helper dictionary...
+11:50:58:898[same_cause_cghr10]: Some ICD10 codes could not be mapped to CGHR. For those records, the CGHR10 code is set to 'NA'.
+11:50:58:898[same_cause_cghr10]: Number of NA in cause1_cghr10: 1
+Binarized and non-binarized sum (binarized reduces repeated counts of a rowid record to 1)
+-------------------------------------------------------
+                       binarized  non-binarized
+same_cause1_cghr10_1x          9              9
+same_cause1_cghr10_2x          7              7
+same_cause1_cghr10_3x          3              3
+same_cause1_cghr10_4x          1              1
+same_cause1_cghr10_5x          2              1
+same_cause1_cghr10_6x          2              2
+same_cause1_cghr10_7x          2              2
+same_cause1_cghr10_8x          7              7
+same_cause1_cghr10_9x          8              8
+same_cause1_cghr10_10x        80             80
+
+Binarized reduces repeated times-count of the same row to 1.
+E.g. A row with (3) 2x plus (1) 4x will be counted as (1) 2x plus (1) 4x
+
+Majority repeated CGHR10 similarity (6x and above) similarity (0.0-1.0): 0.99
+11:50:58:926[main]: Combining ICD10 and CGHR10 analysis into one DataFrame...
+11:50:58:927[main]: Exporting similarities data to: c:\proj_rapid_healsl_chatgpt\standalone_py\output\s3_output_gpt3_sample_aggregated.csv
+11:50:58:929[main]: [TOOLS] Analysis complete
+PS C:\proj_rapid_healsl_chatgpt> & C:/ProgramData/Anaconda3/python.exe c:/proj_rapid_healsl_chatgpt/standalone_py/steps1to3.py
+11:54:51:346[main]: Running step 1 on preparing data...
+11:54:51:346[step_1_prepare_data]: Begin Function
+11:54:51:346[step_1_prepare_data]: Checking if export files exist...
+11:54:51:346[check_file_exists]: Checking if 'c:\proj_rapid_healsl_chatgpt\standalone_py\temp\s1_output_full.csv' exists... yes
+11:54:51:346[check_file_exists]: Checking if 'c:\proj_rapid_healsl_chatgpt\standalone_py\temp\s1_output_sample.csv' exists... yes
+11:54:51:347[step_1_prepare_data]: Full prepared data exists: True
+11:54:51:347[step_1_prepare_data]: Sample prepared data exists: True
+11:54:51:347[step_1_prepare_data]: Export files found. Skipping Step 1.
+11:54:51:347[main]: Running step 2 on generating GPT responses...
+11:54:51:347[step_2_generate_gpt_responses]: Begin Function
+11:54:51:347[step_2_generate_gpt_responses]: Checking if export directory exists...     
+11:54:51:347[step_2_generate_gpt_responses]: Initializing OpenAI client.
+11:54:51:356[step_2_generate_gpt_responses]: Begin FULL dataset Responses Generation
+11:54:51:356[load_va_data]: Loading dataset from c:\proj_rapid_healsl_chatgpt\standalone_py\temp\s1_output_full.csv
+11:54:51:514[load_va_data]: Dataset loaded. Returning DataFrame. Shape: (11887, 8)
+11:54:51:514[check_dataframe_columns]: Required columns: ['uid', 'rowid', 'age_value_death', 'age_unit_death', 'open_narrative', 'sex_cod']
+11:54:51:515[check_dataframe_columns]: 2 extra column(s) found
+11:54:51:515[get_api_response]: Processing 11887 VA records using model gpt-3.5-turbo-0125
+11:54:51:515[load_export_data]: Attempting to locate previously exported data...        
+11:54:51:515[load_export_data]: c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_full.json found.
+11:54:51:753[load_export_data]: 11887 records loaded.
+
+****************** BEGIN MODEL RESPONSE GENERATION *******************
+
+Model: gpt-3.5-turbo-0125
+Temperature: 0
+Logprobs: True
+Data Shape: (11887, 8)
+Generating responses using VA records...
+
+Saving index: 11886    Processing: 24001069     Rows skipped: 11887
+Data saved successfully.
+
+************************ GENERATION COMPLETED ************************
+
+11887 rows skipped. Check skip file for details.
+11:54:53:436[step_2_generate_gpt_responses]: FULL dataset Responses Generation completed
+11:54:53:436[step_2_generate_gpt_responses]: Begin SAMPLE dataset Responses Generation  
+11:54:53:436[load_va_data]: Loading dataset from c:\proj_rapid_healsl_chatgpt\standalone_py\temp\s1_output_sample.csv
+11:54:53:449[load_va_data]: Dataset loaded. Returning DataFrame. Shape: (1000, 8)
+11:54:53:449[check_dataframe_columns]: Required columns: ['uid', 'rowid', 'age_value_death', 'age_unit_death', 'open_narrative', 'sex_cod']
+11:54:53:450[check_dataframe_columns]: 2 extra column(s) found
+11:54:53:450[get_api_response]: Processing 1000 VA records using model gpt-3.5-turbo-0125
+11:54:53:450[load_export_data]: Attempting to locate previously exported data...        
+11:54:53:450[load_export_data]: c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_sample.json found.
+11:54:53:465[load_export_data]: 1000 records loaded.
+
+****************** BEGIN MODEL RESPONSE GENERATION *******************
+
+Model: gpt-3.5-turbo-0125
+Temperature: 0
+Logprobs: True
+Data Shape: (1000, 8)
+Generating responses using VA records...
+
+Saving index: 999      Processing: 24000133_9   Rows skipped: 1000
+Data saved successfully.
+
+************************ GENERATION COMPLETED ************************
+
+1000 rows skipped. Check skip file for details.
+11:54:53:607[step_2_generate_gpt_responses]: SAMPLE dataset Responses Generation completed
+11:54:53:608[step_2_generate_gpt_responses]: All GPT Responses Generation completed     
+11:54:53:611[main]: Running step 3 on full data...
+11:54:53:611[step_3_extract_info]: Beginning Step 3: Information Extraction
+11:54:53:611[step_3_extract_info]: Loading response data from c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_full.json.
+11:54:53:893[load_response_data]: c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_full.json loaded. 11887 records found.
+11:54:54:062[step_3_extract_info]: Extracting columns from 'output'...
+11:54:54:092[step_3_extract_info]: Extracting ICD-10 codes and probabilities...
+11:55:09:923[step_3_extract_info]: Parsing ICD-10 codes to columns...
+11:55:17:815[step_3_extract_info]: Renaming columns...
+11:55:17:819[step_3_extract_info]: Organizing columns...
+11:55:17:821[step_3_extract_info]: Parsing finished. DataFrame shape: (11887, 20)       
+11:55:17:821[step_3_extract_info]: Export path: c:\proj_rapid_healsl_chatgpt\standalone_py\output/s3_output_gpt3_full.csv
+11:55:18:479[step_3_extract_info]: Information Extraction completed
+11:55:18:509[main]: Running step 3 on sample data...
+11:55:18:509[step_3_extract_info]: Beginning Step 3: Information Extraction
+11:55:18:509[step_3_extract_info]: Loading response data from c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_sample.json.
+11:55:18:530[load_response_data]: c:\proj_rapid_healsl_chatgpt\standalone_py\temp/s2_output_gpt3_sample.json loaded. 1000 records found.
+11:55:18:546[step_3_extract_info]: Extracting columns from 'output'...
+11:55:18:549[step_3_extract_info]: Extracting ICD-10 codes and probabilities...
+11:55:19:881[step_3_extract_info]: Parsing ICD-10 codes to columns...
+11:55:20:540[step_3_extract_info]: Renaming columns...
+11:55:20:540[step_3_extract_info]: Organizing columns...
+11:55:20:541[step_3_extract_info]: Parsing finished. DataFrame shape: (1000, 20)        
+11:55:20:541[step_3_extract_info]: Export path: c:\proj_rapid_healsl_chatgpt\standalone_py\output/s3_output_gpt3_sample.csv
+11:55:20:598[step_3_extract_info]: Information Extraction completed
+PS C:\proj_rapid_healsl_chatgpt> & C:/ProgramData/Anaconda3/python.exe c:/proj_rapid_healsl_chatgpt/standalone_py/tools_split_by_round.py
+INFO:root:[TOOLS] Begin splitting data by round
+INFO:root:Input file: c:\proj_rapid_healsl_chatgpt\standalone_py\output\s3_output_gpt3_full.csv
+INFO:root:Directory: output
+INFO:root:Model: gpt3
+INFO:root:Version: v2b
+INFO:root:Split by round: ['rd1' 'rd2']
+INFO:root:Preparing round: rd1 Shape: (8570, 20)
+INFO:root:Export to: c:\proj_rapid_healsl_chatgpt\standalone_py\output\healsl_rd1_rapid_gpt3_v2b.csv
+INFO:root:Preparing round: rd2 Shape: (3317, 20)
+INFO:root:Export to: c:\proj_rapid_healsl_chatgpt\standalone_py\output\healsl_rd2_rapid_gpt3_v2b.csv
+INFO:root:[TOOLS] Data splitting complete
+PS C:\proj_rapid_healsl_chatgpt> & C:/ProgramData/Anaconda3/python.exe c:/proj_rapid_healsl_chatgpt/standalone_py/tools_sample_analysis.py
+14:47:46:742[same_cause_icd10]: [TOOLS] Analysis by Aggregating ICD10 codes
+14:47:46:743[same_cause_icd10]: Reading input data...
+14:47:46:774[same_cause_icd10]: Same cause ICD10 analysis
+14:47:46:774[same_cause_icd10]: Removing decimals from ICD10 codes...
+14:47:46:779[same_cause_icd10]: Combining similar rowids and counting ICD10 code frequency...
+Analysis of Repeated ICD10 Codes per record
+-------------------------------------------------------
+                      binarized  non-binarized
+same_cause1_icd10_1x         24             18
+same_cause1_icd10_2x         13             13
+same_cause1_icd10_3x          7              7
+same_cause1_icd10_4x          3              3
+same_cause1_icd10_5x          2              2
+same_cause1_icd10_6x          2              2
+same_cause1_icd10_7x          6              6
+same_cause1_icd10_8x         14             14
+same_cause1_icd10_9x          9              9
+same_cause1_icd10_10x        66             66
+
+Binarized reduces repeated times-count of the same row to 1.
+E.g. A row with (3) 2x plus (1) 4x will be counted as (1) 2x plus (1) 4x
+
+Majority repeated (6x and above) similarity (0.0-1.0): 0.97
+14:47:46:814[same_cause_cghr10]: [TOOLS] Analysis by Aggregating CGHR10 titles
+14:47:46:814[same_cause_cghr10]: Reading ICD10 to CGHR10 mapping file...
+14:47:46:818[same_cause_cghr10]: Reading input data...
+14:47:46:846[same_cause_cghr10]: Removing decimals from ICD10 codes...
+14:47:46:849[same_cause_cghr10]: Building CGHR10 mapping helper dictionary...
+14:47:46:897[same_cause_cghr10]: Some ICD10 codes could not be mapped to CGHR. For those records, the CGHR10 code is set to 'NA'.
+14:47:46:897[same_cause_cghr10]: Number of NA in cause1_cghr10: 1
+Binarized and non-binarized sum (binarized reduces repeated counts of a rowid record to 1)
+-------------------------------------------------------
+                       binarized  non-binarized
+same_cause1_cghr10_1x          9              9
+same_cause1_cghr10_2x          7              7
+same_cause1_cghr10_3x          3              3
+same_cause1_cghr10_4x          1              1
+same_cause1_cghr10_5x          2              1
+same_cause1_cghr10_6x          2              2
+same_cause1_cghr10_7x          2              2
+same_cause1_cghr10_8x          7              7
+same_cause1_cghr10_9x          8              8
+same_cause1_cghr10_10x        80             80
+
+Binarized reduces repeated times-count of the same row to 1.
+E.g. A row with (3) 2x plus (1) 4x will be counted as (1) 2x plus (1) 4x
+
+Majority repeated CGHR10 similarity (6x and above) similarity (0.0-1.0): 0.99
+14:47:46:925[main]: Combining ICD10 and CGHR10 analysis into one DataFrame...
+14:47:46:927[main]: Exporting similarities data to: c:\proj_rapid_healsl_chatgpt\standalone_py\output\healsl_rd1to2_rapid_gpt3_sample100_v1.csv
+14:47:46:929[main]: [TOOLS] Analysis complete
+PS C:\proj_rapid_healsl_chatgpt> 

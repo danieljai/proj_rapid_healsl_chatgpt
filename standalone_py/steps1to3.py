@@ -114,9 +114,31 @@ class COLOUR:
 def step_1_prepare_data(import_dir, export_full_path, export_sample_path, sample_size=100, sample_rep=10):
 
     def reorder_df(df):
+        """
+        Reorders the columns of a DataFrame by moving the 'uid' column to the front.
+        
+        Args:
+            df (pandas.DataFrame): The DataFrame to be reordered.
+            
+        Returns:
+            pandas.DataFrame: The reordered DataFrame.
+        """
         return df[['uid'] + [col for col in df.columns if col != 'uid']]
 
     def get_samples(df, n=sample_size, repetition=sample_rep):
+        """
+        Extracts samples from a dataframe based on specified parameters. Samples are extracted proportionally from each group.
+        A unique key 'uid' is created for each sample to represent the sampling repetition.
+
+        Args:
+            df (pandas.DataFrame): The input dataframe.
+            n (int, optional): The number of samples to extract. Defaults to the global variable 'sample_size'.
+            repetition (int, optional): The number of repetitions for each sample. Defaults to the global variable 'sample_rep'.
+
+        Returns:
+            pandas.DataFrame: The final sample dataframe.
+
+        """
         app_logger.info(f"Extracting samples from dataframe. n={n}, repetition={repetition}")
         temp_df = df.copy()
 
@@ -167,7 +189,7 @@ def step_1_prepare_data(import_dir, export_full_path, export_sample_path, sample
         list_of_repeated_dfs = [random_rowids.assign(uid=random_rowids['rowid'].astype(str) + "_" + str(r)) for r in range(repetition)]
         final_sample_df = pd.concat(list_of_repeated_dfs)
         app_logger.debug(f"Create uid for sampling repetition")
-        
+
         # done with 'group', so drop it
         final_sample_df = final_sample_df.drop(columns=['group'])
         app_logger.debug(f"Drop 'group' column")
@@ -185,8 +207,19 @@ def step_1_prepare_data(import_dir, export_full_path, export_sample_path, sample
         return final_sample_df
     
     def get_full_df(df):
-        app_logger.info(f"Creating full data dataframe.")
+        """
+        Returns a the full data dataframe with the 'uid' column added and reordered. Also ensures that the
+        sex_cod column has no NaN values.
 
+        Parameters:
+        - df: pandas.DataFrame
+            The input dataframe.
+
+        Returns:
+        - pandas.DataFrame
+            The full data dataframe with the above transformations applied.
+        """
+        app_logger.info(f"Creating full data dataframe.")
         app_logger.debug(f"Duplicate dataframe")
         temp_df = df.copy()
         
@@ -198,7 +231,7 @@ def step_1_prepare_data(import_dir, export_full_path, export_sample_path, sample
         
         app_logger.debug(f"Fill empty string in NaN values")
         temp_df['sex_cod'] = temp_df['sex_cod'].fillna("")
-
+        
         app_logger.info(f"Full Dataframe complete. Returning dataframe.")
         app_logger.debug(f"Final full dataframe shape: {temp_df.shape}")
         
@@ -233,7 +266,7 @@ def step_1_prepare_data(import_dir, export_full_path, export_sample_path, sample
     if not data_dir_exists:
         raise ValueError(f"Error: Import dir {import_dir} not found. Make sure you create the directory and place all the relevant data files there.")
 
-    
+    # Iteratively read various data files, gather relevant columns, merge them into a single dataframe
     merged_all_df = pd.DataFrame()
 
     rounds = ['rd1', 'rd2']
@@ -241,11 +274,11 @@ def step_1_prepare_data(import_dir, export_full_path, export_sample_path, sample
 
     for r in rounds:
         for a in age_groups:
-                       
+
+            # Guess the file path           
             questionnaire_data_path = os.path.join(import_dir, f"healsl_{r}_{a}_v1.csv")
             age_data_path = os.path.join(import_dir, f"healsl_{r}_{a}_age_v1.csv")
             narrative_data_path = os.path.join(import_dir, f"healsl_{r}_{a}_narrative_v1.csv")
-            
             
             try:
                 questionnaire_df =  pd.read_csv(questionnaire_data_path, low_memory=False)
@@ -256,7 +289,7 @@ def step_1_prepare_data(import_dir, export_full_path, export_sample_path, sample
                 
             narrative_df = narrative_df.rename(columns={'summary': 'open_narrative'})
             
-            # Merge the dataframes
+            # Extract relevant columns from each dataframe and merge them
             try:
                 narrative_only = narrative_df[['rowid','open_narrative']]
                 sex_only = questionnaire_df[['rowid','sex_cod']]
@@ -269,6 +302,7 @@ def step_1_prepare_data(import_dir, export_full_path, export_sample_path, sample
             # Fill in missing values with empty string
             merged_df['sex_cod'] = merged_df['sex_cod'].fillna('')
             
+            # Add extra columns age_group and round for clarify
             merged_df['age_group'] = a
             merged_df['round'] = r
             
@@ -281,10 +315,12 @@ def step_1_prepare_data(import_dir, export_full_path, export_sample_path, sample
 
     app_logger.info(f"Merging dataframes complete. Total rows: {merged_all_df.shape[0]}")    
     
+    # Final cleanup before export
     final_sample_df = get_samples(merged_all_df, n=N_SAMPLES, repetition=N_REPEAT_RESPONSES)
 
     final_full_df = get_full_df(merged_all_df)
     
+    # Export files
     app_logger.info(f"Exporting full data, shape {final_full_df.shape} to {COLOUR.yellow}{export_full_path}{COLOUR.end}")
     final_full_df.to_csv(export_full_path, index=False)
 
@@ -296,8 +332,19 @@ def step_1_prepare_data(import_dir, export_full_path, export_sample_path, sample
 
 def step_2_generate_gpt_responses():
     
-    # Function to load CSV dataset and return a DataFrame    
     def load_va_data(filename) -> pd.DataFrame:
+        """
+        Load verbal autopsy preprocessed in step 1 from a CSV file and return as a DataFrame.
+
+        Args:
+            filename (str): The path to the CSV file containing the dataset.
+
+        Returns:
+            pd.DataFrame: The loaded dataset as a pandas DataFrame.
+
+        Raises:
+            ValueError: If the specified file is not found.
+        """
         try:
             # Load dataset
             app_logger.debug(f"Loading dataset from {filename}")
@@ -308,10 +355,9 @@ def step_2_generate_gpt_responses():
         except FileNotFoundError as e:
             raise ValueError(f"Error: {e}")
     
-    # Function to check if all required columns are in the DataFrame, and return any extra colnames
     def check_dataframe_columns(df):
         """
-        Check if the given dataframe contains all the required columns.
+        Check if all the required columns are present in the verbal autopsy DataFrame.
 
         Args:
             df (pandas.DataFrame): The dataframe to be checked.
@@ -342,10 +388,9 @@ def step_2_generate_gpt_responses():
 
         return extra_colnames
     
-    # Function to trim the dataset to a limited size for demo purposes
     def trim_dataframe(df, demo_size_limit=10, demo_random=False) -> pd.DataFrame:
         """
-        Trim the given DataFrame to a specified size for demo purposes.
+        For demo purposes, return a subset of the input DataFrame.
 
         Args:
             df (pd.DataFrame): The input DataFrame to be trimmed.
@@ -370,8 +415,17 @@ def step_2_generate_gpt_responses():
         app_logger.info(f"Trimming complete. New DataFrame shape: {temp_df.shape}")    
         return temp_df
 
-    # Used to convert ChatCompletion object to a dictionary, recursively
     def recursive_dict(obj):
+        """
+        Recursively converts a nested object into a dictionary. Used to convert ChatCompletion objects to 
+        dictionaries for quick serialization.
+
+        Args:
+            obj: The object to be converted.
+
+        Returns:
+            A dictionary representation of the object.
+        """
         if isinstance(obj, dict):
             return {k: recursive_dict(v) for k, v in obj.items()}
         elif isinstance(obj, list):
@@ -381,8 +435,22 @@ def step_2_generate_gpt_responses():
         else:
             return obj
     
-    # Function to load storage data to handle OpenAI responses
     def load_export_data(filename=s2_out_full_processed_json) -> dict:
+        """
+        Load previously processed data if available. The file is initially
+        generated when processing any verbal autopsy record via the API. If no
+        file is detected, an empty dictionary is returned. This allows the
+        script to resume from its last point in case of interruptions and
+        minimizes unnecessary API calls.
+
+        Args:
+            filename (str): The name of the file to load the data from. Defaults
+            to the global variable `s2_out_full_processed_json`.
+
+        Returns:
+            dict: The loaded data as a dictionary.
+
+        """
         app_logger.info(f"Attempting to locate previously exported data...")
         
         if os.path.exists(filename):
@@ -395,14 +463,23 @@ def step_2_generate_gpt_responses():
         app_logger.info(f"{filename} {COLOUR.red}not found{COLOUR.end}. Allocating new storage space...")
         return {}
 
-    # Function to save OpenAI response to storage file
-    def save_export_data(data, filename=s2_out_full_processed_json):                
-        
+    def save_export_data(data, filename=s2_out_full_processed_json):
+        """
+        Save the entire processed dictionary to a JSON file. This is meant to be
+        used to save the data periodically.
+
+        Args:
+            data: The data to be saved.
+            filename: The name of the file to save the data to. Defaults to the
+            global variable 's2_out_full_processed_json'.
+
+        Returns:
+            None
+        """
         # Save data to a file   
         with open(filename, 'w') as file:
             json.dump(data, file)
         
-    # Function to send message to OpenAI API
     def get_completion(
         messages: list[dict[str, str]],
         model: str = "gpt-3.5-turbo-0125",
@@ -412,7 +489,22 @@ def step_2_generate_gpt_responses():
         logprobs=None,
         top_logprobs=None,
     ) -> str:
+        """
+        Generates a completion using the OpenAI Chat API.
 
+        Args:
+            messages (list[dict[str, str]]): A list of messages in the conversation.
+            model (str, optional): The model to use for generating the completion. Defaults to "gpt-3.5-turbo-0125".
+            max_tokens (int, optional): The maximum number of tokens in the generated completion. Defaults to 30.
+            temperature (float, optional): Controls the randomness of the generated completion. Defaults to 0.
+            tools (str, optional): Additional tools to use for generating the completion. Defaults to None.
+            logprobs (int, optional): Include log probabilities in the response. Defaults to None.
+            top_logprobs (int, optional): Include top log probabilities in the response. Defaults to None.
+
+        Returns:
+            str: The generated completion.
+
+        """
         params = {
             "model": model,
             "messages": messages,
@@ -427,9 +519,14 @@ def step_2_generate_gpt_responses():
         completion = client.chat.completions.create(**params)
         return completion
     
-    def get_api_response(input_df, passthrough_colnames, output_response_path):
+    def get_api_response(
+        input_df: pd.DataFrame, 
+        passthrough_colnames: list, 
+        output_response_path: str
+    ) -> None:
         """
-        Generates OpenAI responses for each VA record in the input DataFrame.
+        Iteratively process each row in a DataFrame using the OpenAI API and
+        periodically save the responses to a file.
 
         Args:
             input_df (pandas.DataFrame): The input DataFrame containing VA records.
@@ -553,7 +650,7 @@ def step_2_generate_gpt_responses():
                 for item in skipped_rows:        
                     file.write(f"{str(item)}\n")        
 
-    # Main Program
+    # Main Program - main body of step 2
     app_logger.info("Begin Function")
     
     app_logger.info("Checking if export directory exists...")
@@ -577,7 +674,7 @@ def step_2_generate_gpt_responses():
     # Validate to ensure all required columns are present, extract extra column names
     full_extra_colnames = check_dataframe_columns(df_full)
     
-    # If DEMO_MODE is set to True, process only a subset of the data    
+    # If DEMO_MODE is True, 'df_full' will become a subset of its original size    
     if DEMO_MODE:
         app_logger.info(f"{COLOUR.yellow}DEMO MODE: {DEMO_MODE}{COLOUR.end}")
         df_full = trim_dataframe(
@@ -594,10 +691,9 @@ def step_2_generate_gpt_responses():
     )
     
     app_logger.info(f"{COLOUR.green}FULL dataset Responses Generation completed{COLOUR.end}")
-        
-    app_logger.info(f"{COLOUR.green}Begin SAMPLE dataset Responses Generation{COLOUR.end}")
     
     # Repeat same steps for SAMPLE dataset
+    app_logger.info(f"{COLOUR.green}Begin SAMPLE dataset Responses Generation{COLOUR.end}")
     df_sample = load_va_data(s2_in_smpl_csv)
     sample_extra_colnames = check_dataframe_columns(df_sample)
     

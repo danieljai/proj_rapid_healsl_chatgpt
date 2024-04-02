@@ -97,6 +97,7 @@ PAIRS = 5           # Generate up to 5 ICDs
 DROP_EXCESS_COLUMNS = False         # Set True to remove 'other_columns' from output dataframe
 DROP_RAW = False                    # Set True to remove the 'raw' column, the original raw response, from the export file
 
+# COLOUR class for colour coding text in the console
 class COLOUR:
     yellow = '\033[93m'
     yellow = '\033[93m'
@@ -111,7 +112,31 @@ class COLOUR:
     underline = '\033[4m'
     end = '\033[0m'
 
-def step_1_prepare_data(import_dir, export_full_path, export_sample_path, sample_size=100, sample_rep=10):
+def step_1_prepare_data(
+    import_dir: str, 
+    export_full_path: str, 
+    export_sample_path: str, 
+    sample_size:int = 100, 
+    sample_rep:int = 10
+) -> None:
+    """
+    Runs Step 1: Data Preparation. This function loads the Open Mortality data
+    files from the specified directory, extracts relevant columns, and merges
+    them into a single dataframe to create the full data dataframe. Secondly, it
+    extracts samples from the full data dataframe and creates the sample data
+    dataframe. The full and sample data dataframes are then exported to CSV
+    files.
+
+    Args:
+        import_dir (str): The directory path where the  data files are located.
+        export_full_path (str): The file path to export the full data dataframe.
+        export_sample_path (str): The file path to export the sample data dataframe. 
+        sample_size (int, optional): The number of samples to extract for the sample dataframe. Defaults to 100. 
+        sample_rep (int, optional): The number of repetitions for each sample. Defaults to 10.
+
+    Returns:
+        None
+    """
 
     def reorder_df(df):
         """
@@ -237,6 +262,7 @@ def step_1_prepare_data(import_dir, export_full_path, export_sample_path, sample
         
         return temp_df
 
+    # Main Program - main body of step 1
     app_logger.info("Begin Function")
     
     app_logger.info(f"Checking if export files exist...")
@@ -330,7 +356,14 @@ def step_1_prepare_data(import_dir, export_full_path, export_sample_path, sample
     app_logger.info(f"{COLOUR.green}Data Preparation completed{COLOUR.end}")
     pass
 
-def step_2_generate_gpt_responses():
+def step_2_generate_gpt_responses() -> None:
+    """
+    Runs Step 2: Generates GPT responses for the verbal autopsy narratives and
+    periodically saves the responses to a file.
+
+    Returns:
+        None
+    """
     
     def load_va_data(filename) -> pd.DataFrame:
         """
@@ -653,9 +686,11 @@ def step_2_generate_gpt_responses():
     # Main Program - main body of step 2
     app_logger.info("Begin Function")
     
+    # Check if export directory exists
     app_logger.info("Checking if export directory exists...")
     create_dir(s2_out_full_processed_json)
     
+    # Initialize OpenAI client
     try:
         app_logger.info("Initializing OpenAI client.")
 
@@ -665,7 +700,7 @@ def step_2_generate_gpt_responses():
     except Exception as e:
         raise ValueError(f"Error: {e}")
 
-
+    # Begin processing FULL dataset
     app_logger.info(f"{COLOUR.green}Begin FULL dataset Responses Generation{COLOUR.end}")
     
     # Load FULL dataset from specified CSV file
@@ -683,7 +718,7 @@ def step_2_generate_gpt_responses():
             demo_random=DEMO_RANDOM            
             )
     
-    # Process the FULL dataset with OpenAI and save response to file
+    # Push each DataFrame row to API and save response to file
     get_api_response(
         input_df=df_full,
         passthrough_colnames=full_extra_colnames,
@@ -717,11 +752,38 @@ def step_2_generate_gpt_responses():
 
     pass
 
-def step_3_extract_info(response_data_file, return_data_file):
+def step_3_extract_info(response_data_file: str, return_data_file: str):
+    """
+    Runs Step 3: Extracts information from the response data file.
+
+    This function loads the response data from the specified file, extracts
+    ICD-10 codes and their associated probabilities using token analysis,
+    converts the extracted codes into individual columns, and generates export
+    filenames based on the input filename.
+
+    Args:
+        response_data_file (str): The path to the response data file.
+        return_data_file (str): The path to the return data file.
+
+    Returns:
+        None
+    """
+
 
     def load_response_data(filename):
+        """
+        Load response data from a JSON file, processed from Step 2.
+
+        Args:
+            filename (str): The path to the JSON file.
+
+        Returns:
+            list: The loaded data as a list of records.
+
+        Raises:
+            FileNotFoundError: If the specified file does not exist.
+        """
         if os.path.exists(filename):
-            # print(f"{filename} found. Loading data...")
             with open(filename, 'r') as file:
                 data = json.load(file)
                 app_logger.info(f"{filename} loaded. {COLOUR.cyan}{len(data)}{COLOUR.end} records found.")
@@ -729,16 +791,18 @@ def step_3_extract_info(response_data_file, return_data_file):
         else:
             raise FileNotFoundError(f"{filename} not found.")
 
-    # F(x): Extract ICD probabilities from tokens
     def extract_icd_probabilities(logprobs, debug=False):
         """
-        Extracts ICD-10 codes and their associated probabilities from a list of tokens and log probabilities.
+        Extracts ICD-10 codes and their associated probabilities from a list of
+        tokens and log probabilities.
 
-        This function iterates over the list of tokens and log probabilities, concatenating tokens together 
-        and checking if they match the pattern of an ICD-10 code. If a match is found, it calculates the mean 
-        linear probability of the ICD-10 code and packages the ICD-10 code, mean linear probability, and 
-        associated tokens and log probabilities into a dictionary. It then appends this dictionary to a list 
-        of parsed ICD-10 codes.
+        This function iterates over the list of tokens and log probabilities,
+        concatenating tokens together and checking if they match the pattern of
+        an ICD-10 code. If a match is found, it calculates the mean linear
+        probability of the ICD-10 code and packages the ICD-10 code, mean linear
+        probability, and associated tokens and log probabilities into a
+        dictionary. It then appends this dictionary to a list of parsed ICD-10
+        codes.
 
         Args:
             logprobs (list): A list of lists, where each inner list contains a token and its associated log probability.
@@ -852,7 +916,6 @@ def step_3_extract_info(response_data_file, return_data_file):
 
         return parsed_icds
 
-    # F(x): Convert list of ICD10 into individual columns
     def output_icds_to_cols(value, pairs=PAIRS, sort_probs=False):
         """
         Converts a list of ICD-10 codes and their associated probabilities into a one-dimensional pandas Series.
@@ -884,16 +947,16 @@ def step_3_extract_info(response_data_file, return_data_file):
 
         return tmp
 
-    # F(x): Get export filenames based on input filename
-    def generate_export_filename(file_path, type="first") -> tuple[str, str]:
+    def generate_export_filename(file_path) -> str:
         '''
-        Takes a file path as input and returns a tuple containing the names of the parsed JSON and CSV files.
+        Generates an export filename for the parsed CSV file based on the input
+        filename.
 
         Parameters:
             file_path (str): The full path of the input file.
 
         Returns:
-            tuple[str(json), str(csv)]: A tuple containing the names of the parsed JSON and CSV files.
+            str: The name of the parsed CSV file.
         '''
         directory = os.path.dirname(file_path)
         file = os.path.basename(file_path)
@@ -901,19 +964,16 @@ def step_3_extract_info(response_data_file, return_data_file):
         temp = file.split(".json")[0]
         temp = temp[2:]
         
-        if type == "first":
-            return f"{directory}/03{temp}_parsed_first_ICD.csv"
-        
-        return f"{directory}/03{temp}_parsed_sorted_ICD.csv"
+        return f"{directory}/03{temp}_parsed_first_ICD.csv"
         
     # ##############################################################
-    # Main Program
+    # Main Program - main body of step 3
 
     app_logger.info(f"{COLOUR.green}Beginning Step 3: Information Extraction{COLOUR.end}")
 
+    # Load response data from Step 2 and convert to DataFrame
     app_logger.info(f"Loading response data from {response_data_file}.")
     data_storage = load_response_data(response_data_file)
-        
     df = pd.DataFrame(data_storage).T
 
     # global export_first_ICD_CSV_file
@@ -949,10 +1009,6 @@ def step_3_extract_info(response_data_file, return_data_file):
     # Generate column names for the exploded ICDs in cause{n}_icd10 and cause{n}_icd10_prob format
     icd_column_names_mapping = {i: f"cause{i + 1}_icd10" for i in range(PAIRS)}
 
-    # cause1...5 are filled in the order they appear in the logprobs
-    # parsed_first_icd10_df = df.merge(df.output_probs.apply(lambda x: output_icds_to_cols(x, sort_probs=False)).rename(columns=icd_column_names_mapping), left_index=True, right_index=True)
-    # cause1...5 are filled in the order they appear in the logprobs
-
     app_logger.info("Parsing ICD-10 codes to columns...")
     parsed_first_icd10_df = df.output_probs.apply(
         lambda x: output_icds_to_cols(x, sort_probs=False)
@@ -974,9 +1030,10 @@ def step_3_extract_info(response_data_file, return_data_file):
         'timestamp': 'output_created',
     }
 
-    # Rename the columns using the mapping
+    # Rename the columns based on mapping 
     parsed_first_icd10_df = parsed_first_icd10_df.rename(columns=column_mapping)
 
+    # Extract and reorganize only columns that are required
     app_logger.info("Organizing columns...")
     export_columns = []
     export_columns += ['rowid']
@@ -995,9 +1052,11 @@ def step_3_extract_info(response_data_file, return_data_file):
                         'output_probs',
                     ]
 
+    # Append extra columns if DROP_EXCESS_COLUMNS is False
     if not DROP_EXCESS_COLUMNS:
         export_columns += extra_colnames
-        
+    
+    # Append 'output' column if DROP_RAW is False
     if not DROP_RAW:
         export_columns += ['output']
 
@@ -1008,8 +1067,8 @@ def step_3_extract_info(response_data_file, return_data_file):
     app_logger.info(f"Parsing finished. DataFrame shape: {COLOUR.cyan}{export_parsed_first_icd10_df.shape}{COLOUR.end}")
     app_logger.info(f"Export path: {COLOUR.yellow}{return_data_file}{COLOUR.end}")
     
+    # Export the parsed DataFrame to a CSV file
     create_dir(return_data_file)
-    
     export_parsed_first_icd10_df.to_csv(return_data_file, index=False)
 
     app_logger.info(f"{COLOUR.green}Information Extraction completed{COLOUR.end}")
@@ -1062,11 +1121,20 @@ def create_dir(file_path):
         app_logger.info(f"Directory '{dir_path}' does not exist. Creating it...")
         os.makedirs(dir_path)
 
-# Function to get current time in string YYMMDD_HHMMSS format
 def get_curr_et_datetime_str() -> str:
+    """
+    Returns the current Eastern Time (ET) datetime as a formatted string.
+    
+    Returns:
+        str: The current ET datetime in the format "%y%m%d_%H%M%S".
+    """
     return datetime.datetime.now(tz=TIMEZONE).strftime("%y%m%d_%H%M%S")
     
-def main():    
+def main():
+    """
+    This is the main function that executes steps 1 to 3 of the program.
+    It preprocesses data, generates GPT responses, and extracts information from the responses.
+    """
     logging_process()
     
     # STEP 1    
@@ -1091,7 +1159,7 @@ def main():
     app_logger.info("Running step 3 on full data...")
     step_3_extract_info(response_data_file=s3_in_full_json, return_data_file=s3_out_full_csv)
     
-    # sample data
+    # sample data. run only if sample data is available
     if s3_in_smpl_json:        
         app_logger.info("Running step 3 on sample data...")
         step_3_extract_info(response_data_file=s3_in_smpl_json, return_data_file=s3_out_smpl_csv)

@@ -57,10 +57,20 @@ def logging_process():
     app_logger.addHandler(handler)    
 
 
-def same_cause_icd10(input_data):
+def same_cause_icd10(input_data) -> pd.DataFrame:
+    """
+    Perform analysis by aggregating ICD10 codes and counting their frequencies.
+
+    Args:
+        input_data (str): The filepath of the input data file.
+
+    Returns:
+        pandas.DataFrame: The resulting dataframe containing the analysis results.
+    """
     
     app_logger.info(f"{COLOUR.green}[TOOLS] Analysis by Aggregating {COLOUR.bold}ICD10 codes{COLOUR.end}")
     
+    # Read the input data
     app_logger.info(f"Reading input data...")
     df = pd.read_csv(input_data)
     
@@ -74,7 +84,7 @@ def same_cause_icd10(input_data):
     grouped_df = df.groupby('rowid')
     same_cause_count_df = pd.DataFrame(grouped_df['cause1_icd10'].value_counts())
     
-    # Create a blank df with 10 columns, 1x to 10x
+    # Create a blank df with 10 columns, 1x...10x.
     blank_df = pd.DataFrame(index=same_cause_count_df.reset_index().rowid.unique(), columns=[x+1 for x in range(10)])
     
     # Create a df and count the frequency of ICD10 codes

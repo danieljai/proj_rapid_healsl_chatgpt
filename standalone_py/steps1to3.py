@@ -12,9 +12,10 @@ import re
 
 # Global Variables
 TIMEZONE = pytz.timezone('America/Toronto')
-TEMP_DIR = "temp"
-DATA_DIR = "data"
-OUTPUT_DIR = "output"
+TEMP_DIR = "tmp/gpt"
+DATA_DIR = "tmp"
+OUTPUT_DIR = "tmp"
+INCLUDE_SAMPLING = True
 script_dir = os.path.dirname(__file__)
 
 # #############################################################################################
@@ -26,9 +27,6 @@ s1_out_csv_filename = "s1_output_full.csv"
 s1_out_sample_csv_filename = "s1_output_sample.csv"
 
 s1_in_dir = os.path.join(script_dir, DATA_DIR)
-# STEP1_EXPORT_FULL_FILE = os.path.join(script_dir, f"{TEMP_DIR}/s1_output_full.csv")
-# STEP1_EXPORT_SAMPLE_FILE = os.path.join(script_dir, f"{TEMP_DIR}/s1_output_sample.csv")
-# s3_out_full_csv, s3_out_smpl_csv
 s1_out_full_csv = os.path.join(script_dir, TEMP_DIR, s1_out_csv_filename)
 s1_out_smpl_csv = os.path.join(script_dir, TEMP_DIR, s1_out_sample_csv_filename)
 
@@ -76,8 +74,8 @@ USR_PROMPT = """Determine the underlying cause of death and provide the most pro
 s2_in_full_csv = s1_out_full_csv
 s2_in_smpl_csv = s1_out_smpl_csv
 
-s2_out_full_processed_json = os.path.join(script_dir, f"{TEMP_DIR}/s2_output_{SELECTED_MODEL}_full.json")
-s2_out_smpl_processed_json = os.path.join(script_dir, f"{TEMP_DIR}/s2_output_{SELECTED_MODEL}_sample.json")
+s2_out_full_processed_json = os.path.join(script_dir, TEMP_DIR, f"s2_output_{SELECTED_MODEL}_full.json")
+s2_out_smpl_processed_json = os.path.join(script_dir, TEMP_DIR, f"s2_output_{SELECTED_MODEL}_sample.json")
 
 # #############################################################################################
 # STEP 3 Parameters
@@ -87,8 +85,8 @@ s2_out_smpl_processed_json = os.path.join(script_dir, f"{TEMP_DIR}/s2_output_{SE
 s3_in_full_json = s2_out_full_processed_json
 s3_in_smpl_json = s2_out_smpl_processed_json
 
-s3_out_full_csv = os.path.join(script_dir, f"{OUTPUT_DIR}/s3_output_{SELECTED_MODEL}_full.csv")
-s3_out_smpl_csv = os.path.join(script_dir, f"{OUTPUT_DIR}/s3_output_{SELECTED_MODEL}_sample.csv")
+s3_out_full_csv = os.path.join(script_dir, OUTPUT_DIR, f"s3_output_{SELECTED_MODEL}_full.csv")
+s3_out_smpl_csv = os.path.join(script_dir, OUTPUT_DIR, f"s3_output_{SELECTED_MODEL}_sample.csv")
 
 # Data Analysis Settings
 PAIRS = 5           # Generate up to 5 ICDs
@@ -97,9 +95,38 @@ PAIRS = 5           # Generate up to 5 ICDs
 DROP_EXCESS_COLUMNS = False         # Set True to remove 'other_columns' from output dataframe
 DROP_RAW = False                    # Set True to remove the 'raw' column, the original raw response, from the export file
 
+# #############################################################################################
+# STEP 4a Parameters
+# #############################################################################################
+
+s4a_in_full_json = s3_out_full_csv
+VERSION = "v2b"                     # uses as suffix in the output filename
+SPLIT_COLNAME = "round"             # column name to split by
+
+s4a_out_filename_template = "healsl_ROUND_rapid_MODELNAME_VERSION.csv"
+
+# #############################################################################################
+# STEP 4b Parameters
+# #############################################################################################
+
+# Path to file after Step 3; extracting ICD10 codes
+# PROCESS_FILE = "s3_output_gpt3_sample.csv"
+
+s4b_in_smpl_csv_filepath = s3_out_smpl_csv
+# smpl_analysis_in_csv_path = os.path.join(script_dir, OUTPUT_DIR, PROCESS_FILE)
+
+# Path to export file after sample analysis
+s4b_out_csv_filename = "healsl_rd1to2_rapid_gpt3_sample100_v1.csv"
+s4b_out_csv_filepath = os.path.join(script_dir, OUTPUT_DIR, s4b_out_csv_filename)
+# analyzed_out_csv_filename = PROCESS_FILE.replace(".csv", "_aggregated.csv")
+
+# File required to convert ICD10 codes to CGHR10 titles
+s4b_icd10_cghr10_filename = "icd10_cghr10_v1.csv"
+icd10_cghr10_map_file = os.path.join(script_dir, DATA_DIR, s4b_icd10_cghr10_filename)
+
+
 # COLOUR class for colour coding text in the console
 class COLOUR:
-    yellow = '\033[93m'
     yellow = '\033[93m'
     red = '\033[91m'
     green = '\033[92m'
@@ -1075,6 +1102,221 @@ def step_3_extract_info(response_data_file: str, return_data_file: str):
 
     pass
 
+def step_4a_split_by_rounds(import_full_path: str, output_template: str = s4a_out_filename_template) -> None:
+    app_logger.info(f"{COLOUR.green}[TOOLS] Begin splitting data by round{COLOUR.end}")
+
+    if "gpt3" in import_full_path:
+        model_name = "gpt3"
+    elif "gpt4" in import_full_path:
+        model_name = "gpt4"
+    
+    filename = output_template.replace("VERSION", VERSION)
+    filename = filename.replace("MODELNAME", model_name) 
+        
+
+    df = pd.read_csv(import_full_path)
+    
+    split_unique_val_list = df[SPLIT_COLNAME].unique()
+    
+    app_logger.info(f"Input file: {import_full_path}")
+    app_logger.info(f"Directory: {OUTPUT_DIR}")
+    app_logger.info(f"Model: {model_name}")
+    app_logger.info(f"Version: {VERSION}")
+    app_logger.info(f"Split by {SPLIT_COLNAME}: {split_unique_val_list}")
+    
+    
+    for curr_split in split_unique_val_list:
+        split_df = df[df[SPLIT_COLNAME] == curr_split]
+        
+        app_logger.info(f"Preparing round: {curr_split} Shape: {COLOUR.cyan}{split_df.shape}{COLOUR.end}")
+        
+        
+        
+        split_filename = filename.replace("ROUND", curr_split)
+        split_filename = os.path.join(script_dir, OUTPUT_DIR, split_filename)
+        app_logger.info(f"Export to: {COLOUR.yellow}{split_filename}{COLOUR.end}")
+        split_df.to_csv(split_filename, index=False)
+
+def step_4b_sample_analysis(input_data:str, output_data:str):
+    
+
+    def same_cause_icd10(input_data) -> pd.DataFrame:
+        """
+        Perform analysis by aggregating ICD10 codes and counting their frequencies.
+
+        Args:
+            input_data (str): The filepath of the input data file.
+
+        Returns:
+            pandas.DataFrame: The resulting dataframe containing the analysis results.
+        """
+        
+        app_logger.info(f"{COLOUR.green}[TOOLS] Analysis by Aggregating {COLOUR.bold}ICD10 codes{COLOUR.end}")
+        
+        # Read the input data
+        app_logger.info(f"Reading input data...")
+        df = pd.read_csv(input_data)
+        
+        # Remove any ICDs with decimals
+        app_logger.info(f"Same cause ICD10 analysis")
+        app_logger.info(f"Removing decimals from ICD10 codes...")
+        df[['cause1_icd10', 'cause2_icd10', 'cause3_icd10', 'cause4_icd10', 'cause5_icd10']] = df[['cause1_icd10', 'cause2_icd10', 'cause3_icd10', 'cause4_icd10', 'cause5_icd10']].map(lambda x: x.split('.')[0] if pd.notnull(x) else x)
+
+        # Group similar rowids and count the frequency of ICD10 codes
+        app_logger.info(f"Combining similar rowids and counting ICD10 code frequency...")
+        grouped_df = df.groupby('rowid')
+        same_cause_count_df = pd.DataFrame(grouped_df['cause1_icd10'].value_counts())
+        
+        # Create a blank df with 10 columns, 1x...10x.
+        blank_df = pd.DataFrame(index=same_cause_count_df.reset_index().rowid.unique(), columns=[x+1 for x in range(10)])
+        
+        # Create a df and count the frequency of ICD10 codes
+        # e.g. if there are two codes repeated twice and one code six times, 2x will be 2 and 6x will be 1
+        dummy_df = pd.get_dummies(same_cause_count_df['count']).astype(int).groupby('rowid').sum()
+        
+        # Combine the blank and dummy df
+        same_cause_count_df = blank_df.combine_first(dummy_df)
+        
+        # Rename the columns
+        same_cause_count_df = same_cause_count_df.rename(columns=lambda x: f'same_cause1_icd10_{x}x')
+        same_cause_icd10_colnames = same_cause_count_df.columns
+
+        # non-binarized shows the values as is.
+        # binarized reduces the repeated counts of a rowid record to 1
+        binarized_sum = same_cause_count_df.sum()
+        nbinarized_sum = same_cause_count_df[same_cause_icd10_colnames].apply(lambda x: x.astype(bool)).sum()
+        print("Analysis of Repeated ICD10 Codes per record")    
+        print("-------------------------------------------------------")
+        print(pd.DataFrame({'binarized': binarized_sum, 'non-binarized': nbinarized_sum}))
+        print()
+        print("Binarized reduces repeated times-count of the same row to 1.")
+        print("E.g. A row with (3) 2x plus (1) 4x will be counted as (1) 2x plus (1) 4x")
+        print()
+        print(f"Majority repeated (6x and above) similarity (0.0-1.0): {COLOUR.bold}{binarized_sum.iloc[-5:].sum()/len(df.rowid.unique())}{COLOUR.end}")
+        
+        # Generate dataframe
+        
+        aggregated_cause1_icd10_rows = []
+
+        for name, group in grouped_df:
+            aggregated_cause1_icd10_rows.append([name, group['cause1_icd10'].value_counts().to_dict()])
+            
+        combined_icd10_df = pd.DataFrame(aggregated_cause1_icd10_rows, columns=['rowid', 'cause1_icd10']).set_index('rowid')
+
+        final_icd_df = same_cause_count_df.merge(combined_icd10_df, left_index=True, right_index=True)
+        final_icd_df = final_icd_df.merge(df[['rowid', 'age_group', 'round']].drop_duplicates(subset='rowid').set_index('rowid'), left_index=True, right_index=True)
+        # print(final_icd_df)
+        
+        return final_icd_df
+
+    def same_cause_cghr10(input_data):
+        
+        app_logger.info(f"{COLOUR.green}[TOOLS] Analysis by Aggregating {COLOUR.bold}CGHR10 titles{COLOUR.end}")
+        
+        
+        try:
+            app_logger.info(f"Reading ICD10 to CGHR10 mapping file...")
+            icd10_to_cghr_mapping = pd.read_csv(icd10_cghr10_map_file)
+        except FileNotFoundError:        
+            app_logger.error(f"{COLOUR.red}File not found: {icd10_cghr10_map_file}{COLOUR.end}")
+            app_logger.error(f"This file is required to convert ICD10 codes to CGHR10 titles. Skipping CGHR10 analysis...")
+            return None
+        
+        app_logger.info(f"Reading input data...")
+        df = pd.read_csv(input_data)
+        
+        app_logger.info(f"Removing decimals from ICD10 codes...")
+        df[['cause1_icd10', 'cause2_icd10', 'cause3_icd10', 'cause4_icd10', 'cause5_icd10']] = df[['cause1_icd10', 'cause2_icd10', 'cause3_icd10', 'cause4_icd10', 'cause5_icd10']].map(lambda x: x.split('.')[0] if pd.notnull(x) else x)
+
+        # Map file has mapping information for all age groups, with some ICD10 shared across multiple 
+        # age groups with different CGHR10 titles. To simplify this, we split each age group into separate
+        # dataframes and store in a dictionary with age group as key.
+        app_logger.info(f"Building CGHR10 mapping helper dictionary...")
+        cghr_map_helper = {}
+        for group in icd10_to_cghr_mapping.cghr10_age.unique():
+            cghr_map_helper[group] = icd10_to_cghr_mapping[icd10_to_cghr_mapping.cghr10_age == group].set_index('icd10_code')
+
+        # Convert cause1_icd10 to to CGHR10 title, based on the age group of the record.
+        # In situations where mapping info does not exist, 'NA' is used as the CGHR10 title.
+        cghr_df = df.assign(
+            cause1_cghr10 = df.apply(lambda row: 
+                'NA' if row.cause1_icd10 not in cghr_map_helper[row.age_group].index
+                else cghr_map_helper[row.age_group].loc[row.cause1_icd10]['cghr10_title']
+                , axis=1)
+        )
+        
+        # count how many after grouping by rowid
+        unmapped_code_count = len(cghr_df[cghr_df.cause1_cghr10 == 'NA'].groupby('rowid').size().value_counts())
+        if unmapped_code_count > 0:
+            app_logger.warning(f"{COLOUR.yellow}Some ICD10 codes could not be mapped to CGHR. For those records, the CGHR10 code is set to 'NA'.{COLOUR.end}")
+            app_logger.warning(f"Number of NA in cause1_cghr10: {unmapped_code_count}")
+        else:
+            app_logger.info(f"All ICD10 codes were successfully mapped to CGHR10 titles.")
+        
+        # Similar process to same_cause_icd10(), see that function for details
+        grouped_cghr_df = cghr_df.groupby('rowid')
+        same_cause_count_cghr_df = pd.DataFrame(grouped_cghr_df['cause1_cghr10'].value_counts())
+        blank_df = pd.DataFrame(index=same_cause_count_cghr_df.reset_index().rowid.unique(), columns=[x for x in range(1,11)])
+        dummy_df = pd.get_dummies(same_cause_count_cghr_df['count']).astype(int).groupby('rowid').sum()
+        
+        same_cause_count_cghr_df = blank_df.combine_first(dummy_df)
+        same_cause_count_cghr_df = same_cause_count_cghr_df.rename(columns=lambda x: f'same_cause1_cghr10_{x}x')
+        same_cause_cghr10_colnames = same_cause_count_cghr_df.columns
+
+        binarized_cghr_sum = same_cause_count_cghr_df.sum()
+        nbinarized_cghr_sum = same_cause_count_cghr_df[same_cause_cghr10_colnames].apply(lambda x: x.astype(bool)).sum()
+        
+        print("Binarized and non-binarized sum (binarized reduces repeated counts of a rowid record to 1)")
+        print("-------------------------------------------------------")
+        print(pd.DataFrame({'binarized': binarized_cghr_sum, 'non-binarized': nbinarized_cghr_sum}))
+        print()
+        print("Binarized reduces repeated times-count of the same row to 1.")
+        print("E.g. A row with (3) 2x plus (1) 4x will be counted as (1) 2x plus (1) 4x")
+        print()
+        print(f"Majority repeated CGHR10 similarity (6x and above) similarity (0.0-1.0): {COLOUR.bold}{binarized_cghr_sum.iloc[-5:].sum()/len(df.rowid.unique())}{COLOUR.end}")
+
+        # Generate dataframe
+        aggregated_cause1_cghr10_rows = []
+        
+        for name, group in grouped_cghr_df:
+            aggregated_cause1_cghr10_rows.append([name, group['cause1_cghr10'].value_counts().to_dict()])
+
+        combined_cghr10_df = pd.DataFrame(aggregated_cause1_cghr10_rows, columns=['rowid', 'cause1_cghr10']).set_index('rowid')
+
+        final_cghr_df = same_cause_count_cghr_df.merge(combined_cghr10_df, left_index=True, right_index=True)
+        
+        # print(final_cghr_df)
+        return final_cghr_df
+        
+
+    # main program
+    # Aggregate ICD10 codes
+    icd10_df = same_cause_icd10(input_data=input_data)
+    
+    # Aggregate CGHR10 titles
+    cghr10_df = same_cause_cghr10(input_data=input_data)
+    
+    # When CGHR10 Analysis fails, export ICD10 analysis only
+    if cghr10_df is None:
+        app_logger.warning(f"CGHR10 Skipped. Exporting ICD10 analysis only...")
+        icd10_df.to_csv(s4b_out_csv_filepath.replace("_aggregated.csv", "_icd10_similarity.csv"), index=False)
+        return
+    
+    # Combine ICD10 and CGHR10 analysis, then export
+    app_logger.info(f"Combining ICD10 and CGHR10 analysis into one DataFrame...")
+    final_agg_df = icd10_df.merge(cghr10_df, left_index=True, right_index=True)
+    final_agg_colnames = [c for c in final_agg_df.columns if c not in ['age_group', 'round']] + ['age_group', 'round']
+    final_agg_df = final_agg_df[final_agg_colnames]
+    
+    final_agg_df = final_agg_df.reset_index().rename(columns={'index': 'rowid', 'cause1_icd10' : 'cause_icd10', 'cause1_cghr10': 'cause_cghr10'})
+    
+    # print(final_agg_df)
+    app_logger.info(f"Exporting similarities data to: {COLOUR.yellow}{s4b_out_csv_filepath}{COLOUR.end}")
+    final_agg_df.to_csv(s4b_out_csv_filepath, index=False)
+    
+    app_logger.info(f"{COLOUR.green}[TOOLS] Analysis complete{COLOUR.end}")
+    pass
+
 def logging_process():
     """
     This function initializes a logger named 'app_logger' and sets its level to DEBUG.
@@ -1160,9 +1402,24 @@ def main():
     step_3_extract_info(response_data_file=s3_in_full_json, return_data_file=s3_out_full_csv)
     
     # sample data. run only if sample data is available
-    if s3_in_smpl_json:        
+    if INCLUDE_SAMPLING:        
         app_logger.info("Running step 3 on sample data...")
         step_3_extract_info(response_data_file=s3_in_smpl_json, return_data_file=s3_out_smpl_csv)
+
+    # STEP 4a - Split by rounds
+    app_logger.info(f"{COLOUR.green}Running step 4a on splitting full data by rounds...{COLOUR.end}")
+    step_4a_split_by_rounds(
+        import_full_path=s4a_in_full_json,
+        output_template=s4a_out_filename_template
+    )
+
+    # STEP 4b - Sample Analysis
+    if INCLUDE_SAMPLING:
+        app_logger.info(f"{COLOUR.green}Running step 4b on sample analysis...{COLOUR.end}")
+        step_4b_sample_analysis(
+            input_data=s4b_in_smpl_csv_filepath,
+            output_data=s4b_out_csv_filepath
+        )
 
 if __name__ == "__main__":
     main()

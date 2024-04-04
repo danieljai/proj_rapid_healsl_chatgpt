@@ -12,9 +12,9 @@ import re
 
 # Global Variables
 TIMEZONE = pytz.timezone('America/Toronto')
-TEMP_DIR = "tmp/gpt"
+TEMP_DIR = "tmp\gpt"
 DATA_DIR = "tmp"
-OUTPUT_DIR = "tmp"
+OUTPUT_DIR = "tmp\output"
 INCLUDE_SAMPLING = True
 script_dir = os.path.dirname(__file__)
 
@@ -50,7 +50,7 @@ DEMO_SIZE_LIMIT = 5
 DROP_EXCESS_COLUMNS = False
 
 # Number of API calls between saving the output file
-SAVE_FREQ = 2
+SAVE_FREQ = 3
 
 # Models Settings
 # GPT4 = "gpt-4-0613"
@@ -140,9 +140,10 @@ class COLOUR:
     end = '\033[0m'
 
 def step_1_prepare_data(
-    import_dir: str, 
+    import_data_dir: str, 
     export_full_path: str, 
     export_sample_path: str, 
+    include_sampling: bool = True,
     sample_size:int = 100, 
     sample_rep:int = 10
 ) -> None:
@@ -158,6 +159,7 @@ def step_1_prepare_data(
         import_dir (str): The directory path where the  data files are located.
         export_full_path (str): The file path to export the full data dataframe.
         export_sample_path (str): The file path to export the sample data dataframe. 
+        include_sampling (bool, optional): Flag to indicate whether to include sampling. Defaults to True.
         sample_size (int, optional): The number of samples to extract for the sample dataframe. Defaults to 100. 
         sample_rep (int, optional): The number of repetitions for each sample. Defaults to 10.
 
@@ -289,10 +291,8 @@ def step_1_prepare_data(
         
         return temp_df
 
-    # Main Program - main body of step 1
-    app_logger.info("Begin Function")
-    
-    app_logger.info(f"Checking if export files exist...")
+    # Main Program - main body of step 1    
+    app_logger.debug(f"Checking if export files exist...")
     full_data_exists = check_file_exists(export_full_path)
     sample_data_exists = check_file_exists(export_sample_path)
     
@@ -310,14 +310,13 @@ def step_1_prepare_data(
     if not os.path.exists(export_dir):
         app_logger.info(f"Export dir not found. Creating directory: {COLOUR.yellow}{export_dir}{COLOUR.end}")
         os.makedirs(export_dir)
-    
-    app_logger.info(f"Continuing with Step 1: Data Preparation")
+        
     # Check if the DATA dir exists; for import data
-    data_dir_exists = os.path.isdir(import_dir)
-    app_logger.info(f"Import directory exists: {COLOUR.green if data_dir_exists else COLOUR.red}{data_dir_exists}{COLOUR.end}")
+    data_dir_exists = os.path.isdir(import_data_dir)
+    app_logger.error(f"Import directory exists: {COLOUR.green if data_dir_exists else COLOUR.red}{data_dir_exists}{COLOUR.end}")
     
     if not data_dir_exists:
-        raise ValueError(f"Error: Import dir {import_dir} not found. Make sure you create the directory and place all the relevant data files there.")
+        raise ValueError(f"Error: Import dir {import_data_dir} not found. Make sure you create the directory and place all the relevant data files there.")
 
     # Iteratively read various data files, gather relevant columns, merge them into a single dataframe
     merged_all_df = pd.DataFrame()
@@ -329,9 +328,9 @@ def step_1_prepare_data(
         for a in age_groups:
 
             # Guess the file path           
-            questionnaire_data_path = os.path.join(import_dir, f"healsl_{r}_{a}_v1.csv")
-            age_data_path = os.path.join(import_dir, f"healsl_{r}_{a}_age_v1.csv")
-            narrative_data_path = os.path.join(import_dir, f"healsl_{r}_{a}_narrative_v1.csv")
+            questionnaire_data_path = os.path.join(import_data_dir, f"healsl_{r}_{a}_v1.csv")
+            age_data_path = os.path.join(import_data_dir, f"healsl_{r}_{a}_age_v1.csv")
+            narrative_data_path = os.path.join(import_data_dir, f"healsl_{r}_{a}_narrative_v1.csv")
             
             try:
                 questionnaire_df =  pd.read_csv(questionnaire_data_path, low_memory=False)
@@ -366,27 +365,34 @@ def step_1_prepare_data(
             
             merged_all_df = pd.concat([merged_all_df, merged_df])
 
-    app_logger.info(f"Merging dataframes complete. Total rows: {merged_all_df.shape[0]}")    
-    
-    # Final cleanup before export
-    final_sample_df = get_samples(merged_all_df, n=N_SAMPLES, repetition=N_REPEAT_RESPONSES)
+    app_logger.debug(f"Merging dataframes complete. Total rows: {merged_all_df.shape[0]}")    
+        
+    # Get samples and export
+    if include_sampling:
+        final_sample_df = get_samples(merged_all_df, n=N_SAMPLES, repetition=N_REPEAT_RESPONSES)
+        app_logger.info(f"Exporting sample data, shape {final_sample_df.shape} to {COLOUR.yellow}{export_sample_path}{COLOUR.end}")
+        final_sample_df.to_csv(export_sample_path, index=False)
+    else:
+        app_logger.info(f"{COLOUR.red}Skipping sample data export.{COLOUR.end}")
 
-    final_full_df = get_full_df(merged_all_df)
-    
-    # Export files
+    # Get full data and export
+    final_full_df = get_full_df(merged_all_df)    
     app_logger.info(f"Exporting full data, shape {final_full_df.shape} to {COLOUR.yellow}{export_full_path}{COLOUR.end}")
     final_full_df.to_csv(export_full_path, index=False)
 
-    app_logger.info(f"Exporting sample data, shape {final_sample_df.shape} to {COLOUR.yellow}{export_sample_path}{COLOUR.end}")
-    final_sample_df.to_csv(export_sample_path, index=False)
 
-    app_logger.info(f"{COLOUR.green}Data Preparation completed{COLOUR.end}")
+    app_logger.info(f"{COLOUR.green}Step 1 completed{COLOUR.end}")
     pass
 
-def step_2_generate_gpt_responses() -> None:
+def step_2_generate_gpt_responses(
+    include_sampling: bool = True,
+    ) -> None:
     """
     Runs Step 2: Generates GPT responses for the verbal autopsy narratives and
     periodically saves the responses to a file.
+    
+    Args:
+        include_sampling (bool, optional): Flag to indicate whether to include sampling. Defaults to True.
 
     Returns:
         None
@@ -511,16 +517,17 @@ def step_2_generate_gpt_responses() -> None:
             dict: The loaded data as a dictionary.
 
         """
-        app_logger.info(f"Attempting to locate previously exported data...")
         
-        if os.path.exists(filename):
-            app_logger.info(f"{COLOUR.yellow}{filename}{COLOUR.end} found.")
+        app_logger.info(f"Locating previous safepoint...")
+        app_logger.debug(f"Checking for file: {filename}")
+        
+        if os.path.exists(filename):            
             with open(filename, 'r') as file:
                 data = json.load(file)
-                app_logger.info(f"{COLOUR.yellow}{len(data)}{COLOUR.end} records loaded.")
+                app_logger.info(f"Safepoint found. {COLOUR.yellow}{len(data)}{COLOUR.end} records loaded.")
             return data        
         
-        app_logger.info(f"{filename} {COLOUR.red}not found{COLOUR.end}. Allocating new storage space...")
+        app_logger.info(f"Safepoint {COLOUR.red}not found{COLOUR.end}. Starting from scratch.")
         return {}
 
     def save_export_data(data, filename=s2_out_full_processed_json):
@@ -703,7 +710,7 @@ def step_2_generate_gpt_responses() -> None:
             # Write skipped rows to a file
             # s1_out_full_csv = os.path.join(script_dir, TEMP_DIR, s1_out_csv_filename)
             
-            skipped_report = os.path.join(script_dir, f"{TEMP_DIR}/step2_skipped_{get_curr_et_datetime_str()}.txt")
+            skipped_report = os.path.join(script_dir, f"{TEMP_DIR}/log_step2_skipped_{get_curr_et_datetime_str()}.txt")
 
             with open(skipped_report, "w") as file:
                 file.write(f"The follow rows are skipped because they were already processed.\n")
@@ -711,8 +718,7 @@ def step_2_generate_gpt_responses() -> None:
                     file.write(f"{str(item)}\n")        
 
     # Main Program - main body of step 2
-    app_logger.info("Begin Function")
-    
+        
     # Check if export directory exists
     app_logger.info("Checking if export directory exists...")
     create_dir(s2_out_full_processed_json)
@@ -754,28 +760,32 @@ def step_2_generate_gpt_responses() -> None:
     
     app_logger.info(f"{COLOUR.green}FULL dataset Responses Generation completed{COLOUR.end}")
     
-    # Repeat same steps for SAMPLE dataset
-    app_logger.info(f"{COLOUR.green}Begin SAMPLE dataset Responses Generation{COLOUR.end}")
-    df_sample = load_va_data(s2_in_smpl_csv)
-    sample_extra_colnames = check_dataframe_columns(df_sample)
     
-    if DEMO_MODE:
-        app_logger.info(f"{COLOUR.yellow}DEMO MODE: {DEMO_MODE}{COLOUR.end}")
-        df_sample = trim_dataframe(
-            df=df_sample,
-            demo_size_limit=DEMO_SIZE_LIMIT,
-            demo_random=DEMO_RANDOM
+    # Repeat same steps for SAMPLE dataset
+    if include_sampling:
+        app_logger.info(f"{COLOUR.green}Begin SAMPLE dataset Responses Generation{COLOUR.end}")
+        df_sample = load_va_data(s2_in_smpl_csv)
+        sample_extra_colnames = check_dataframe_columns(df_sample)
+        
+        if DEMO_MODE:
+            app_logger.info(f"{COLOUR.yellow}DEMO MODE: {DEMO_MODE}{COLOUR.end}")
+            df_sample = trim_dataframe(
+                df=df_sample,
+                demo_size_limit=DEMO_SIZE_LIMIT,
+                demo_random=DEMO_RANDOM
+            )
+            
+        get_api_response(
+            input_df=df_sample,
+            passthrough_colnames=sample_extra_colnames,
+            output_response_path=s2_out_smpl_processed_json
         )
         
-    get_api_response(
-        input_df=df_sample,
-        passthrough_colnames=sample_extra_colnames,
-        output_response_path=s2_out_smpl_processed_json
-    )
+        app_logger.info(f"{COLOUR.green}SAMPLE dataset Responses Generation completed{COLOUR.end}")
+    else:
+        app_logger.info(f"{COLOUR.red}Skipping sample data responses generation.{COLOUR.end}")
     
-    app_logger.info(f"{COLOUR.green}SAMPLE dataset Responses Generation completed{COLOUR.end}")
-    
-    app_logger.info(f"{COLOUR.green}All GPT Responses Generation completed{COLOUR.end}")
+    app_logger.info(f"{COLOUR.green}Step 2 Complete{COLOUR.end}")
 
     pass
 
@@ -1371,7 +1381,62 @@ def get_curr_et_datetime_str() -> str:
         str: The current ET datetime in the format "%y%m%d_%H%M%S".
     """
     return datetime.datetime.now(tz=TIMEZONE).strftime("%y%m%d_%H%M%S")
+
+def precheck(
+    import_data_dir: str, 
+) -> bool:
+    precheck_passed = True
+        
+    rounds = ['rd1', 'rd2']
+    age_groups = ['adult', 'child', 'neo']
+
+    print(f"Base Dir: {script_dir}")
     
+    print(f"Required Files by Step 1:")
+    for r in rounds:
+        for a in age_groups:
+            # Guess the file path           
+            questionnaire_data_path = os.path.join(import_data_dir, f"healsl_{r}_{a}_v1.csv")
+            age_data_path = os.path.join(import_data_dir, f"healsl_{r}_{a}_age_v1.csv")
+            narrative_data_path = os.path.join(import_data_dir, f"healsl_{r}_{a}_narrative_v1.csv")
+            
+            trimmed_questionnaire_data_path = os.path.relpath(questionnaire_data_path, script_dir)
+            trimmed_age_data_path = os.path.relpath(age_data_path, script_dir)
+            trimmed_narrative_data_path = os.path.relpath(narrative_data_path, script_dir)
+            
+            if os.path.isfile(questionnaire_data_path):
+                print(f"[{COLOUR.green}\u2713{COLOUR.end}] {trimmed_questionnaire_data_path}")
+            else:
+                print(f"[{COLOUR.red}\u2717{COLOUR.end}] {trimmed_questionnaire_data_path}")
+                
+                precheck_passed = False
+            
+            if os.path.isfile(age_data_path):
+                print(f"[{COLOUR.green}\u2713{COLOUR.end}] {trimmed_age_data_path}")
+            else:
+                print(f"[{COLOUR.red}\u2717{COLOUR.end}] {trimmed_age_data_path}")
+                precheck_passed = False
+            
+            if os.path.isfile(narrative_data_path):
+                print(f"[{COLOUR.green}\u2713{COLOUR.end}] {trimmed_narrative_data_path}")
+            else:
+                print(f"[{COLOUR.red}\u2717{COLOUR.end}] {trimmed_narrative_data_path}")
+                precheck_passed = False            
+    
+    print(f"Required files by Step 4b:")
+    
+    trimmed_icd10_cghr10_map_file = os.path.relpath(icd10_cghr10_map_file, script_dir)
+    
+    if INCLUDE_SAMPLING:
+        if os.path.isfile(icd10_cghr10_map_file):
+            print(f"[{COLOUR.green}\u2713{COLOUR.end}] {trimmed_icd10_cghr10_map_file}")
+        else:
+            print(f"[{COLOUR.red}\u2717{COLOUR.end}] {trimmed_icd10_cghr10_map_file}")
+            print(f"This file is required to convert ICD10 codes to CGHR10 titles. Sample Analysis cannot be performed without it.")
+            precheck_passed = False
+        
+    return precheck_passed
+
 def main():
     """
     This is the main function that executes steps 1 to 3 of the program.
@@ -1379,43 +1444,56 @@ def main():
     """
     logging_process()
     
-    # STEP 1    
+    # Step 0 - Prechecks
+    app_logger.info(f"{COLOUR.green}Running prechecks...{COLOUR.end}")
+    precheck_status = precheck(import_data_dir=s1_in_dir)
+    
+    if precheck_status:
+        print(f"{COLOUR.green}Prechecks passed. Starting main process...{COLOUR.end}")
+    else:
+        print(f"{COLOUR.red}Prechecks failed, some files are missing.{COLOUR.end}")
+        print(f"Please obtain all files from Open Mortality at openmortality.org")
+        raise FileExistsError("Missing required files.")
+    
+    
+    # STEP 1 - Preprocess Data
     # preprocess data into a format that can be used by GPT
-    app_logger.info(f"{COLOUR.green}Running step 1 on preparing data...{COLOUR.end}")
+    app_logger.info(f"{COLOUR.green}Running step 1: Preprocessing Data...{COLOUR.end}")
     step_1_prepare_data(
-        import_dir=s1_in_dir,
+        import_data_dir=s1_in_dir,
         export_full_path=s1_out_full_csv,
         export_sample_path=s1_out_smpl_csv,
+        include_sampling=INCLUDE_SAMPLING,
         sample_size=N_SAMPLES,
         sample_rep=N_REPEAT_RESPONSES        
         )
 
-    # STEP 2
-    # send VA records and get GPT responses    
-    app_logger.info(f"{COLOUR.green}Running step 2 on generating GPT responses...{COLOUR.end}")
-    step_2_generate_gpt_responses()
-    
 
-    # STEP 3    
+    # STEP 2 - Generate GPT Responses
+    # send VA records and get GPT responses    
+    app_logger.info(f"{COLOUR.green}Running step 2: Generating GPT responses...{COLOUR.end}")
+    step_2_generate_gpt_responses()
+
+    # STEP 3 - Extract Information
     # full data
-    app_logger.info("Running step 3 on full data...")
+    app_logger.info("Running step 3 on FULL data...")
     step_3_extract_info(response_data_file=s3_in_full_json, return_data_file=s3_out_full_csv)
     
     # sample data. run only if sample data is available
     if INCLUDE_SAMPLING:        
-        app_logger.info("Running step 3 on sample data...")
+        app_logger.info("Running step 3 on SAMPLE data...")
         step_3_extract_info(response_data_file=s3_in_smpl_json, return_data_file=s3_out_smpl_csv)
-
-    # STEP 4a - Split by rounds
-    app_logger.info(f"{COLOUR.green}Running step 4a on splitting full data by rounds...{COLOUR.end}")
+        
+    # STEP 4a - Split Full Data by rounds
+    app_logger.info(f"{COLOUR.green}Running step 4a: Split FULL data results by rounds...{COLOUR.end}")
     step_4a_split_by_rounds(
         import_full_path=s4a_in_full_json,
         output_template=s4a_out_filename_template
     )
 
-    # STEP 4b - Sample Analysis
+    # STEP 4b - Analyze Sample Data
     if INCLUDE_SAMPLING:
-        app_logger.info(f"{COLOUR.green}Running step 4b on sample analysis...{COLOUR.end}")
+        app_logger.info(f"{COLOUR.green}Running step 4b: Sampling Analysis...{COLOUR.end}")
         step_4b_sample_analysis(
             input_data=s4b_in_smpl_csv_filepath,
             output_data=s4b_out_csv_filepath

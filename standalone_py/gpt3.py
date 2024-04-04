@@ -19,7 +19,7 @@ INCLUDE_SAMPLING = True
 script_dir = os.path.dirname(__file__)
 
 # #############################################################################################
-# STEP 1 Parameters
+# STAGE 1 Parameters
 # #############################################################################################
 
 # File Settings
@@ -36,7 +36,7 @@ N_SAMPLES = 100
 N_REPEAT_RESPONSES = 10
 
 # #############################################################################################
-# STEP 2 Parameters
+# STAGE 2 Parameters
 # #############################################################################################
 
 # Demo mode artificially limits the number of rows from the import dataset for testing/demo purposes
@@ -78,7 +78,7 @@ s2_out_full_processed_json = os.path.join(script_dir, TEMP_DIR, f"s2_output_{SEL
 s2_out_smpl_processed_json = os.path.join(script_dir, TEMP_DIR, f"s2_output_{SELECTED_MODEL}_sample.json")
 
 # #############################################################################################
-# STEP 3 Parameters
+# STAGE 3 Parameters
 # #############################################################################################
 
 # File Settings
@@ -96,7 +96,7 @@ DROP_EXCESS_COLUMNS = False         # Set True to remove 'other_columns' from ou
 DROP_RAW = False                    # Set True to remove the 'raw' column, the original raw response, from the export file
 
 # #############################################################################################
-# STEP 4a Parameters
+# STAGE 4a Parameters
 # #############################################################################################
 
 s4a_in_full_json = s3_out_full_csv
@@ -106,10 +106,10 @@ SPLIT_COLNAME = "round"             # column name to split by
 s4a_out_filename_template = "healsl_ROUND_rapid_MODELNAME_VERSION.csv"
 
 # #############################################################################################
-# STEP 4b Parameters
+# STAGE 4b Parameters
 # #############################################################################################
 
-# Path to file after Step 3; extracting ICD10 codes
+# Path to file after STAGE 3; extracting ICD10 codes
 # PROCESS_FILE = "s3_output_gpt3_sample.csv"
 
 s4b_in_smpl_csv_filepath = s3_out_smpl_csv
@@ -139,7 +139,7 @@ class COLOUR:
     underline = '\033[4m'
     end = '\033[0m'
 
-def step_1_prepare_data(
+def stage_1_prepare_data(
     import_data_dir: str, 
     export_full_path: str, 
     export_sample_path: str, 
@@ -148,7 +148,7 @@ def step_1_prepare_data(
     sample_rep:int = 10
 ) -> None:
     """
-    Runs Step 1: Data Preparation. This function loads the Open Mortality data
+    Runs Stage 1: Data Preparation. This function loads the Open Mortality data
     files from the specified directory, extracts relevant columns, and merges
     them into a single dataframe to create the full data dataframe. Secondly, it
     extracts samples from the full data dataframe and creates the sample data
@@ -291,7 +291,7 @@ def step_1_prepare_data(
         
         return temp_df
 
-    # Main Program - main body of step 1    
+    # Main Program - main body of Stage 1    
     app_logger.debug(f"Checking if export files exist...")
     full_data_exists = check_file_exists(export_full_path)
     sample_data_exists = check_file_exists(export_sample_path)
@@ -299,9 +299,9 @@ def step_1_prepare_data(
     app_logger.info(f"Full prepared data exists: {COLOUR.green if full_data_exists else COLOUR.red}{full_data_exists}{COLOUR.end}")
     app_logger.info(f"Sample prepared data exists: {COLOUR.green if sample_data_exists else COLOUR.red}{sample_data_exists}{COLOUR.end}")
     
-    # full and sample data already exists, skip Step 1
+    # full and sample data already exists, skip Stage 1
     if full_data_exists and sample_data_exists:
-        app_logger.info(f"Export files found. {COLOUR.green}Skipping Step 1.{COLOUR.end}")
+        app_logger.info(f"Export files found. {COLOUR.green}Skipping Stage 1.{COLOUR.end}")
         return
     
     # If export dir does not exist, create it
@@ -381,14 +381,14 @@ def step_1_prepare_data(
     final_full_df.to_csv(export_full_path, index=False)
 
 
-    app_logger.info(f"{COLOUR.green}Step 1 completed{COLOUR.end}")
+    app_logger.info(f"{COLOUR.green}Stage 1 completed{COLOUR.end}")
     pass
 
-def step_2_generate_gpt_responses(
+def stage_2_generate_gpt_responses(
     include_sampling: bool = True,
     ) -> None:
     """
-    Runs Step 2: Generates GPT responses for the verbal autopsy narratives and
+    Runs Stage 2: Generates GPT responses for the verbal autopsy narratives and
     periodically saves the responses to a file.
     
     Args:
@@ -400,7 +400,7 @@ def step_2_generate_gpt_responses(
     
     def load_va_data(filename) -> pd.DataFrame:
         """
-        Load verbal autopsy preprocessed in step 1 from a CSV file and return as a DataFrame.
+        Load verbal autopsy preprocessed in Stage 1 from a CSV file and return as a DataFrame.
 
         Args:
             filename (str): The path to the CSV file containing the dataset.
@@ -710,14 +710,14 @@ def step_2_generate_gpt_responses(
             # Write skipped rows to a file
             # s1_out_full_csv = os.path.join(script_dir, TEMP_DIR, s1_out_csv_filename)
             
-            skipped_report = os.path.join(script_dir, f"{TEMP_DIR}/log_step2_skipped_{get_curr_et_datetime_str()}.txt")
+            skipped_report = os.path.join(script_dir, f"{TEMP_DIR}/log_stage_2_skipped_{get_curr_et_datetime_str()}.txt")
 
             with open(skipped_report, "w") as file:
                 file.write(f"The follow rows are skipped because they were already processed.\n")
                 for item in skipped_rows:        
                     file.write(f"{str(item)}\n")        
 
-    # Main Program - main body of step 2
+    # Main Program - main body of Stage 2
         
     # Check if export directory exists
     app_logger.info("Checking if export directory exists...")
@@ -785,13 +785,13 @@ def step_2_generate_gpt_responses(
     else:
         app_logger.info(f"{COLOUR.red}Skipping sample data responses generation.{COLOUR.end}")
     
-    app_logger.info(f"{COLOUR.green}Step 2 Complete{COLOUR.end}")
+    app_logger.info(f"{COLOUR.green}Stage 2 Complete{COLOUR.end}")
 
     pass
 
-def step_3_extract_info(response_data_file: str, return_data_file: str):
+def stage_3_extract_info(response_data_file: str, return_data_file: str):
     """
-    Runs Step 3: Extracts information from the response data file.
+    Runs Stage 3: Extracts information from the response data file.
 
     This function loads the response data from the specified file, extracts
     ICD-10 codes and their associated probabilities using token analysis,
@@ -809,7 +809,7 @@ def step_3_extract_info(response_data_file: str, return_data_file: str):
 
     def load_response_data(filename):
         """
-        Load response data from a JSON file, processed from Step 2.
+        Load response data from a JSON file, processed from Stage 2.
 
         Args:
             filename (str): The path to the JSON file.
@@ -1004,11 +1004,11 @@ def step_3_extract_info(response_data_file: str, return_data_file: str):
         return f"{directory}/03{temp}_parsed_first_ICD.csv"
         
     # ##############################################################
-    # Main Program - main body of step 3
+    # Main Program - main body of Stage 3
 
-    app_logger.info(f"{COLOUR.green}Beginning Step 3: Information Extraction{COLOUR.end}")
+    app_logger.info(f"{COLOUR.green}Beginning Stage 3: Information Extraction{COLOUR.end}")
 
-    # Load response data from Step 2 and convert to DataFrame
+    # Load response data from Stage 2 and convert to DataFrame
     app_logger.info(f"Loading response data from {response_data_file}.")
     data_storage = load_response_data(response_data_file)
     df = pd.DataFrame(data_storage).T
@@ -1112,7 +1112,7 @@ def step_3_extract_info(response_data_file: str, return_data_file: str):
 
     pass
 
-def step_4a_split_by_rounds(import_full_path: str, output_template: str = s4a_out_filename_template) -> None:
+def stage_4a_split_by_rounds(import_full_path: str, output_template: str = s4a_out_filename_template) -> None:
     app_logger.info(f"{COLOUR.green}[TOOLS] Begin splitting data by round{COLOUR.end}")
 
     if "gpt3" in import_full_path:
@@ -1147,7 +1147,7 @@ def step_4a_split_by_rounds(import_full_path: str, output_template: str = s4a_ou
         app_logger.info(f"Export to: {COLOUR.yellow}{split_filename}{COLOUR.end}")
         split_df.to_csv(split_filename, index=False)
 
-def step_4b_sample_analysis(input_data:str, output_data:str):
+def stage_4b_sample_analysis(input_data:str, output_data:str):
     
 
     def same_cause_icd10(input_data) -> pd.DataFrame:
@@ -1392,7 +1392,7 @@ def precheck(
 
     print(f"Base Dir: {script_dir}")
     
-    print(f"Required Files by Step 1:")
+    print(f"Required Files by Stage 1:")
     for r in rounds:
         for a in age_groups:
             # Guess the file path           
@@ -1423,7 +1423,7 @@ def precheck(
                 print(f"[{COLOUR.red}\u2717{COLOUR.end}] {trimmed_narrative_data_path}")
                 precheck_passed = False            
     
-    print(f"Required files by Step 4b:")
+    print(f"Required files by Stage 4b:")
     
     trimmed_icd10_cghr10_map_file = os.path.relpath(icd10_cghr10_map_file, script_dir)
     
@@ -1439,12 +1439,11 @@ def precheck(
 
 def main():
     """
-    This is the main function that executes steps 1 to 3 of the program.
-    It preprocesses data, generates GPT responses, and extracts information from the responses.
+    Process all stages; from acquiring neccessary features, process through API, to extracting results    
     """
     logging_process()
     
-    # Step 0 - Prechecks
+    # STAGE 0 - Prechecks
     app_logger.info(f"{COLOUR.green}Running prechecks...{COLOUR.end}")
     precheck_status = precheck(import_data_dir=s1_in_dir)
     
@@ -1456,10 +1455,10 @@ def main():
         raise FileExistsError("Missing required files.")
     
     
-    # STEP 1 - Preprocess Data
+    # STAGE 1 - Preprocess Data
     # preprocess data into a format that can be used by GPT
-    app_logger.info(f"{COLOUR.green}Running step 1: Preprocessing Data...{COLOUR.end}")
-    step_1_prepare_data(
+    app_logger.info(f"{COLOUR.green}Running stage 1: Preprocessing Data...{COLOUR.end}")
+    stage_1_prepare_data(
         import_data_dir=s1_in_dir,
         export_full_path=s1_out_full_csv,
         export_sample_path=s1_out_smpl_csv,
@@ -1469,32 +1468,32 @@ def main():
         )
 
 
-    # STEP 2 - Generate GPT Responses
+    # STAGE 2 - Generate GPT Responses
     # send VA records and get GPT responses    
-    app_logger.info(f"{COLOUR.green}Running step 2: Generating GPT responses...{COLOUR.end}")
-    step_2_generate_gpt_responses()
+    app_logger.info(f"{COLOUR.green}Running stage 2: Generating GPT responses...{COLOUR.end}")
+    stage_2_generate_gpt_responses()
 
-    # STEP 3 - Extract Information
+    # STAGE 3 - Extract Information
     # full data
-    app_logger.info("Running step 3 on FULL data...")
-    step_3_extract_info(response_data_file=s3_in_full_json, return_data_file=s3_out_full_csv)
+    app_logger.info("Running stage 3 on FULL data...")
+    stage_3_extract_info(response_data_file=s3_in_full_json, return_data_file=s3_out_full_csv)
     
     # sample data. run only if sample data is available
     if INCLUDE_SAMPLING:        
-        app_logger.info("Running step 3 on SAMPLE data...")
-        step_3_extract_info(response_data_file=s3_in_smpl_json, return_data_file=s3_out_smpl_csv)
+        app_logger.info("Running stage 3 on SAMPLE data...")
+        stage_3_extract_info(response_data_file=s3_in_smpl_json, return_data_file=s3_out_smpl_csv)
         
-    # STEP 4a - Split Full Data by rounds
-    app_logger.info(f"{COLOUR.green}Running step 4a: Split FULL data results by rounds...{COLOUR.end}")
-    step_4a_split_by_rounds(
+    # STAGE 4a - Split Full Data by rounds
+    app_logger.info(f"{COLOUR.green}Running stage 4a: Split FULL data results by rounds...{COLOUR.end}")
+    stage_4a_split_by_rounds(
         import_full_path=s4a_in_full_json,
         output_template=s4a_out_filename_template
     )
 
-    # STEP 4b - Analyze Sample Data
+    # STAGE 4b - Analyze Sample Data
     if INCLUDE_SAMPLING:
-        app_logger.info(f"{COLOUR.green}Running step 4b: Sampling Analysis...{COLOUR.end}")
-        step_4b_sample_analysis(
+        app_logger.info(f"{COLOUR.green}Running stage 4b: Sampling Analysis...{COLOUR.end}")
+        stage_4b_sample_analysis(
             input_data=s4b_in_smpl_csv_filepath,
             output_data=s4b_out_csv_filepath
         )

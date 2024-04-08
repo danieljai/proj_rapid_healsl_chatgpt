@@ -100,7 +100,7 @@ DROP_RAW = False                    # Set True to remove the 'raw' column, the o
 # #############################################################################################
 
 s4a_in_full_json = s3_out_full_csv
-VERSION = "v2b"                     # uses as suffix in the output filename
+VERSION = "v2"                     # uses as suffix in the output filename
 SPLIT_COLNAME = "round"             # column name to split by
 
 s4a_out_filename_template = "healsl_ROUND_rapid_MODELNAME_VERSION.csv"

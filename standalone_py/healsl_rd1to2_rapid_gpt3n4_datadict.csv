@@ -1,0 +1,131 @@
+﻿data_name,column_name,description,type
+healsl_rd1_rapid_gpt3_v2,rowid,Unique identifier for each row in the dataset,int
+healsl_rd1_rapid_gpt3_v2,cause1_icd10,First ICD-10 code extracted from the model's output,text
+healsl_rd1_rapid_gpt3_v2,cause2_icd10,Second ICD-10 code extracted from the model's output,text
+healsl_rd1_rapid_gpt3_v2,cause3_icd10,Third ICD-10 code extracted from the model's output,text
+healsl_rd1_rapid_gpt3_v2,cause4_icd10,Fourth ICD-10 code extracted from the model's output,text
+healsl_rd1_rapid_gpt3_v2,cause5_icd10,Fifth ICD-10 code extracted from the model's output,text
+healsl_rd1_rapid_gpt3_v2,param_model,Specific model used for the analysis.,text
+healsl_rd1_rapid_gpt3_v2,param_system_prompt,Provide more broad instructions to the model,text
+healsl_rd1_rapid_gpt3_v2,param_user_prompt,Provide more specific instructions to the model,text
+healsl_rd1_rapid_gpt3_v2,param_max_tokens,Maximum number of tokens allowed in the output,int
+healsl_rd1_rapid_gpt3_v2,param_temperature,"Range from 0 to 2; lower values make the output more focused and deterministic, while higher values make it more random.",int
+healsl_rd1_rapid_gpt3_v2,output_created,Date and time (Eastern time) when the output was generated.,text
+healsl_rd1_rapid_gpt3_v2,output_usage_completion_tokens,Number of tokens used in the output prompt,int
+healsl_rd1_rapid_gpt3_v2,output_usage_prompt_tokens,Number of tokens used in the input prompt,int
+healsl_rd1_rapid_gpt3_v2,output_msg,Output assigned by the model,text
+healsl_rd1_rapid_gpt3_v2,icd10_count,Number of ICD-10 codes extracted from the output,int
+healsl_rd1_rapid_gpt3_v2,output_probs,"List of dictionaries containing ICD-10 codes, their log probabilities, and mean probability",text
+healsl_rd1_rapid_gpt3_v2,age_group,Age group of the deceased,text
+healsl_rd1_rapid_gpt3_v2,round,Study round when the verbal autopsy record was collected,text
+healsl_rd1_rapid_gpt3_v2,output,"Raw output object assigned by the model, converted to JSON format",text
+healsl_rd2_rapid_gpt3_v2,rowid,Unique identifier for each row in the dataset,int
+healsl_rd2_rapid_gpt3_v2,cause1_icd10,First ICD-10 code extracted from the model's output,text
+healsl_rd2_rapid_gpt3_v2,cause2_icd10,Second ICD-10 code extracted from the model's output,text
+healsl_rd2_rapid_gpt3_v2,cause3_icd10,Third ICD-10 code extracted from the model's output,text
+healsl_rd2_rapid_gpt3_v2,cause4_icd10,Fourth ICD-10 code extracted from the model's output,text
+healsl_rd2_rapid_gpt3_v2,cause5_icd10,Fifth ICD-10 code extracted from the model's output,text
+healsl_rd2_rapid_gpt3_v2,param_model,Specific model used for the analysis.,text
+healsl_rd2_rapid_gpt3_v2,param_system_prompt,Provide more broad instructions to the model,text
+healsl_rd2_rapid_gpt3_v2,param_user_prompt,Provide more specific instructions to the model,text
+healsl_rd2_rapid_gpt3_v2,param_max_tokens,Maximum number of tokens allowed in the output,int
+healsl_rd2_rapid_gpt3_v2,param_temperature,"Range from 0 to 2; lower values make the output more focused and deterministic, while higher values make it more random.",int
+healsl_rd2_rapid_gpt3_v2,output_created,Date and time (Eastern time) when the output was generated.,text
+healsl_rd2_rapid_gpt3_v2,output_usage_completion_tokens,Number of tokens used in the output prompt,int
+healsl_rd2_rapid_gpt3_v2,output_usage_prompt_tokens,Number of tokens used in the input prompt,int
+healsl_rd2_rapid_gpt3_v2,output_msg,Output assigned by the model,text
+healsl_rd2_rapid_gpt3_v2,icd10_count,Number of ICD-10 codes extracted from the output,int
+healsl_rd2_rapid_gpt3_v2,output_probs,"List of dictionaries containing ICD-10 codes, their log probabilities, and mean probability",text
+healsl_rd2_rapid_gpt3_v2,age_group,Age group of the deceased,text
+healsl_rd2_rapid_gpt3_v2,round,Study round when the verbal autopsy record was collected,text
+healsl_rd2_rapid_gpt3_v2,output,"Raw output object assigned by the model, converted to JSON format",text
+healsl_rd1_rapid_gpt4_v2b,rowid,Unique identifier for each row in the dataset,int
+healsl_rd1_rapid_gpt4_v2b,cause1_icd10,First ICD-10 code extracted from the model's output,text
+healsl_rd1_rapid_gpt4_v2b,cause2_icd10,Second ICD-10 code extracted from the model's output,text
+healsl_rd1_rapid_gpt4_v2b,cause3_icd10,Third ICD-10 code extracted from the model's output,text
+healsl_rd1_rapid_gpt4_v2b,cause4_icd10,Fourth ICD-10 code extracted from the model's output,text
+healsl_rd1_rapid_gpt4_v2b,cause5_icd10,Fifth ICD-10 code extracted from the model's output,text
+healsl_rd1_rapid_gpt4_v2b,param_model,Specific model used for the analysis.,text
+healsl_rd1_rapid_gpt4_v2b,param_system_prompt,Provide more broad instructions to the model,text
+healsl_rd1_rapid_gpt4_v2b,param_user_prompt,Provide more specific instructions to the model,text
+healsl_rd1_rapid_gpt4_v2b,param_max_tokens,Maximum number of tokens allowed in the output,int
+healsl_rd1_rapid_gpt4_v2b,param_temperature,"Range from 0 to 2; lower values make the output more focused and deterministic, while higher values make it more random.",int
+healsl_rd1_rapid_gpt4_v2b,output_created,Date and time (Eastern time) when the output was generated.,text
+healsl_rd1_rapid_gpt4_v2b,output_usage_completion_tokens,Number of tokens used in the output prompt,int
+healsl_rd1_rapid_gpt4_v2b,output_usage_prompt_tokens,Number of tokens used in the input prompt,int
+healsl_rd1_rapid_gpt4_v2b,output_msg,Output assigned by the model,text
+healsl_rd1_rapid_gpt4_v2b,icd10_count,Number of ICD-10 codes extracted from the output,int
+healsl_rd1_rapid_gpt4_v2b,output_probs,"List of dictionaries containing ICD-10 codes, their log probabilities, and mean probability",text
+healsl_rd1_rapid_gpt4_v2b,age_group,Age group of the deceased,text
+healsl_rd1_rapid_gpt4_v2b,round,Study round when the verbal autopsy record was collected,text
+healsl_rd1_rapid_gpt4_v2b,output,"Raw output object assigned by the model, converted to JSON format",text
+healsl_rd2_rapid_gpt4_v2b,rowid,Unique identifier for each row in the dataset,int
+healsl_rd2_rapid_gpt4_v2b,cause1_icd10,First ICD-10 code extracted from the model's output,text
+healsl_rd2_rapid_gpt4_v2b,cause2_icd10,Second ICD-10 code extracted from the model's output,text
+healsl_rd2_rapid_gpt4_v2b,cause3_icd10,Third ICD-10 code extracted from the model's output,text
+healsl_rd2_rapid_gpt4_v2b,cause4_icd10,Fourth ICD-10 code extracted from the model's output,text
+healsl_rd2_rapid_gpt4_v2b,cause5_icd10,Fifth ICD-10 code extracted from the model's output,text
+healsl_rd2_rapid_gpt4_v2b,param_model,Specific model used for the analysis.,text
+healsl_rd2_rapid_gpt4_v2b,param_system_prompt,Provide more broad instructions to the model,text
+healsl_rd2_rapid_gpt4_v2b,param_user_prompt,Provide more specific instructions to the model,text
+healsl_rd2_rapid_gpt4_v2b,param_max_tokens,Maximum number of tokens allowed in the output,int
+healsl_rd2_rapid_gpt4_v2b,param_temperature,"Range from 0 to 2; lower values make the output more focused and deterministic, while higher values make it more random.",int
+healsl_rd2_rapid_gpt4_v2b,output_created,Date and time (Eastern time) when the output was generated.,text
+healsl_rd2_rapid_gpt4_v2b,output_usage_completion_tokens,Number of tokens used in the output prompt,int
+healsl_rd2_rapid_gpt4_v2b,output_usage_prompt_tokens,Number of tokens used in the input prompt,int
+healsl_rd2_rapid_gpt4_v2b,output_msg,Output assigned by the model,text
+healsl_rd2_rapid_gpt4_v2b,icd10_count,Number of ICD-10 codes extracted from the output,int
+healsl_rd2_rapid_gpt4_v2b,output_probs,"List of dictionaries containing ICD-10 codes, their log probabilities, and mean probability",text
+healsl_rd2_rapid_gpt4_v2b,age_group,Age group of the deceased,text
+healsl_rd2_rapid_gpt4_v2b,round,Study round when the verbal autopsy record was collected,text
+healsl_rd2_rapid_gpt4_v2b,output,"Raw output object assigned by the model, converted to JSON format",text
+healsl_rd1to2_rapid_gpt3_sample100_v1,rowid,Unique identifier for each row in the dataset,int
+healsl_rd1to2_rapid_gpt3_sample100_v2,same_cause1_icd10_1x,"Same ICD-10 assignment, 1 time",int
+healsl_rd1to2_rapid_gpt3_sample100_v3,same_cause1_icd10_2x,"Same ICD-10 assignment, 2 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v4,same_cause1_icd10_3x,"Same ICD-10 assignment, 3 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v5,same_cause1_icd10_4x,"Same ICD-10 assignment, 4 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v6,same_cause1_icd10_5x,"Same ICD-10 assignment, 5 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v7,same_cause1_icd10_6x,"Same ICD-10 assignment, 6 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v8,same_cause1_icd10_7x,"Same ICD-10 assignment, 7 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v9,same_cause1_icd10_8x,"Same ICD-10 assignment, 8 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v10,same_cause1_icd10_9x,"Same ICD-10 assignment, 9 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v11,same_cause1_icd10_10x,"Same ICD-10 assignment, 10 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v12,cause_icd10,"ICD-10 codes retrieve from the output, then aggregated to count how many times the same ICD-10 code was repeated",text
+healsl_rd1to2_rapid_gpt3_sample100_v13,same_cause1_cghr10_1x,"Same CGHR title assignment, 1 time",int
+healsl_rd1to2_rapid_gpt3_sample100_v14,same_cause1_cghr10_2x,"Same CGHR title assignment, 2 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v15,same_cause1_cghr10_3x,"Same CGHR title assignment, 3 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v16,same_cause1_cghr10_4x,"Same CGHR title assignment, 4 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v17,same_cause1_cghr10_5x,"Same CGHR title assignment, 5 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v18,same_cause1_cghr10_6x,"Same CGHR title assignment, 6 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v19,same_cause1_cghr10_7x,"Same CGHR title assignment, 7 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v20,same_cause1_cghr10_8x,"Same CGHR title assignment, 8 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v21,same_cause1_cghr10_9x,"Same CGHR title assignment, 9 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v22,same_cause1_cghr10_10x,"Same CGHR title assignment, 10 times",int
+healsl_rd1to2_rapid_gpt3_sample100_v23,cause_cghr10,"ICD-10 codes coverted to CGHR titles, then aggregated to count how many times the same CGHR title was repeated",text
+healsl_rd1to2_rapid_gpt3_sample100_v24,age_group,Age group of the deceased,text
+healsl_rd1to2_rapid_gpt3_sample100_v25,round,Study round when the verbal autopsy record was collected,text
+healsl_rd1to2_rapid_gpt4_sample100_v1,rowid,Unique identifier for each row in the dataset,int
+healsl_rd1to2_rapid_gpt4_sample100_v2,same_cause1_icd10_1x,"Same ICD-10 assignment, 1 time",int
+healsl_rd1to2_rapid_gpt4_sample100_v3,same_cause1_icd10_2x,"Same ICD-10 assignment, 2 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v4,same_cause1_icd10_3x,"Same ICD-10 assignment, 3 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v5,same_cause1_icd10_4x,"Same ICD-10 assignment, 4 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v6,same_cause1_icd10_5x,"Same ICD-10 assignment, 5 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v7,same_cause1_icd10_6x,"Same ICD-10 assignment, 6 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v8,same_cause1_icd10_7x,"Same ICD-10 assignment, 7 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v9,same_cause1_icd10_8x,"Same ICD-10 assignment, 8 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v10,same_cause1_icd10_9x,"Same ICD-10 assignment, 9 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v11,same_cause1_icd10_10x,"Same ICD-10 assignment, 10 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v12,cause_icd10,"ICD-10 codes retrieve from the output, then aggregated to count how many times the same ICD-10 code was repeated",text
+healsl_rd1to2_rapid_gpt4_sample100_v13,same_cause1_cghr10_1x,"Same CGHR title assignment, 1 time",int
+healsl_rd1to2_rapid_gpt4_sample100_v14,same_cause1_cghr10_2x,"Same CGHR title assignment, 2 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v15,same_cause1_cghr10_3x,"Same CGHR title assignment, 3 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v16,same_cause1_cghr10_4x,"Same CGHR title assignment, 4 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v17,same_cause1_cghr10_5x,"Same CGHR title assignment, 5 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v18,same_cause1_cghr10_6x,"Same CGHR title assignment, 6 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v19,same_cause1_cghr10_7x,"Same CGHR title assignment, 7 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v20,same_cause1_cghr10_8x,"Same CGHR title assignment, 8 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v21,same_cause1_cghr10_9x,"Same CGHR title assignment, 9 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v22,same_cause1_cghr10_10x,"Same CGHR title assignment, 10 times",int
+healsl_rd1to2_rapid_gpt4_sample100_v23,cause_cghr10,"ICD-10 codes coverted to CGHR titles, then aggregated to count how many times the same CGHR title was repeated",text
+healsl_rd1to2_rapid_gpt4_sample100_v24,age_group,Age group of the deceased,text
+healsl_rd1to2_rapid_gpt4_sample100_v25,round,Study round when the verbal autopsy record was collected,text

@@ -18,4 +18,5 @@ notebook/Step02_process_openai_report_*.txt
 
 # Exceptions
 !supp. files/*
-
+!standalone_py/*datadict.csv
+!standalone_py/*metadata.csv
